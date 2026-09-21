@@ -20,28 +20,33 @@ function findAnchor(): Element | null {
 }
 
 /**
- * Insert the launcher slot into the Jira action row. Returns the slot element,
- * or null when the header has not rendered yet.
+ * Insert the launcher slot into the Jira action row, between Automation and
+ * Improve Epic when both exist, so it sits on the same wrapped row as those
+ * siblings. Returns the slot element, or null when the header has not rendered.
  */
 export function ensureLauncherSlot(): HTMLElement | null {
   const existing = document.getElementById(LAUNCHER_SLOT_ID);
   if (existing?.isConnected) return existing;
 
-  const anchor = findAnchor();
-  if (!anchor) return null;
+  const actions = document.querySelector(
+    '[data-testid="issue.views.issue-base.foundation.status.actions-wrapper"]',
+  );
+  const improve = document.querySelector(
+    '[data-testid="issue.views.issue-base.foundation.status.improve-issue"]',
+  );
+  const fallback = findAnchor();
+  if (!actions && !improve && !fallback) return null;
 
-  const slot = existing ?? document.createElement("div");
+  const slot = document.createElement("div");
   slot.id = LAUNCHER_SLOT_ID;
   slot.className = "jbt-launcher-slot";
 
-  const isActionsWrapper = anchor.matches(
-    '[data-testid="issue.views.issue-base.foundation.status.actions-wrapper"]',
-  );
-
-  if (isActionsWrapper) {
-    anchor.insertAdjacentElement("afterend", slot);
-  } else {
-    anchor.appendChild(slot);
+  if (improve?.parentElement) {
+    improve.parentElement.insertBefore(slot, improve);
+  } else if (actions) {
+    actions.insertAdjacentElement("afterend", slot);
+  } else if (fallback) {
+    fallback.appendChild(slot);
   }
 
   return slot;
@@ -62,9 +67,10 @@ function findDonorButton(): HTMLButtonElement | null {
   // Ordered by preference. The status field lives in the same container and
   // must never be used: it is a lozenge dropdown, styled nothing like these.
   const selectors = [
+    // Prefer Agents: it is a labelled button. Automation is icon-only and
+    // clips any text we inject into the same padding.
     '[data-testid="ai-agents-button.button"]',
     '[data-testid="issue.views.issue-base.foundation.status.actions-wrapper"] button',
-    '[data-testid="ref-spotlight-target-status-and-approval-spotlight"] ~ div button',
   ];
 
   const isUsable = (el: Element | null): el is HTMLButtonElement => {
@@ -90,9 +96,9 @@ function findDonorButton(): HTMLButtonElement | null {
  * Clone a neighbouring Jira button and retarget it, so the launcher is the
  * same element type with the same classes, padding and typography.
  *
- * The donor's parent wrapper is cloned as well: some of Jira's typography and
- * spacing is applied through that wrapper rather than the button itself, so a
- * bare button clone renders at the wrong font size and weight.
+ * Only the button itself is cloned. Outer presentation wrappers vary in height
+ * (Agents uses a 44px wrapper; Automation uses 32px), and the launcher slot
+ * already supplies the shared 12px bottom padding used by this row.
  */
 export function buildLauncherButton(
   label: string,
@@ -101,16 +107,7 @@ export function buildLauncherButton(
   const donor = findDonorButton();
   if (!donor) return null;
 
-  const donorWrapper =
-    donor.parentElement && donor.parentElement.children.length === 1
-      ? donor.parentElement
-      : null;
-
-  const root = (donorWrapper ?? donor).cloneNode(true) as HTMLElement;
-  const button = (
-    root instanceof HTMLButtonElement ? root : root.querySelector("button")
-  ) as HTMLButtonElement | null;
-  if (!button) return null;
+  const button = donor.cloneNode(true) as HTMLButtonElement;
 
   for (const attr of [
     "aria-expanded",
@@ -124,7 +121,7 @@ export function buildLauncherButton(
   ]) {
     button.removeAttribute(attr);
   }
-  root.querySelectorAll("[data-testid]").forEach((el) => {
+  button.querySelectorAll("[data-testid]").forEach((el) => {
     el.removeAttribute("data-testid");
   });
   button.type = "button";
@@ -167,7 +164,7 @@ export function buildLauncherButton(
     onClick();
   });
 
-  return root;
+  return button;
 }
 
 /** The actual button inside whatever wrapper `buildLauncherButton` returned. */

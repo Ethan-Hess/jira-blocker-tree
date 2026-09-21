@@ -1,6 +1,9 @@
 .jbt-launcher-slot {
-  display: inline-flex;
-  align-items: center;
+  /* Match actions-wrapper / improve-issue: 32px control + 12px bottom pad. */
+  display: flex;
+  align-items: flex-start;
+  padding: 0 0 12px;
+  box-sizing: content-box;
 }
 
 /*
@@ -18,14 +21,13 @@ html.jbt-drawer-open body {
 
 /*
  * The launcher is a clone of a neighbouring Jira button, so padding, radius
- * and typography come from Jira itself. Only the icon size and the open state
- * need styling, and both use Atlassian design tokens so they follow whichever
- * colour mode Jira is in.
+ * and typography come from Jira itself. Keep the SVG on the inline layout
+ * baseline (Jira's icons use display:inline); display:block shifts the icon
+ * relative to the label.
  */
 .jbt-launcher-cloned svg {
   width: 16px;
   height: 16px;
-  display: block;
 }
 
 .jbt-launcher-cloned[data-jbt-open="true"] {
