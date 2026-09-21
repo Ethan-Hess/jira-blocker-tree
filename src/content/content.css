@@ -17,6 +17,7 @@
 /* Shift the page instead of covering it, so the issue fields stay readable. */
 html.jbt-drawer-open body {
   margin-right: var(--jbt-drawer-width, 520px) !important;
+  transition: margin-right 160ms ease;
 }
 
 /*

@@ -17,6 +17,9 @@ import "./panel.css";
 
 type PanelView = "tree" | "lineage";
 
+const DRAWER_WIDTH_TREE = "520px";
+const DRAWER_WIDTH_LINEAGE = "min(920px, 92vw)";
+
 function filterTree(node: TreeNode, hideDone: boolean): TreeNode | null {
   if (hideDone && node.issue.statusCategory === "done" && node.kind !== "root") {
     return null;
@@ -102,6 +105,15 @@ export function BlockerTreePanel({
     if (loadedKeyRef.current === issueKey) return;
     void load(issueKey);
   }, [issueKey, load]);
+
+  useEffect(() => {
+    if (variant !== "drawer") return;
+    const width = view === "lineage" ? DRAWER_WIDTH_LINEAGE : DRAWER_WIDTH_TREE;
+    document.documentElement.style.setProperty("--jbt-drawer-width", width);
+    return () => {
+      document.documentElement.style.removeProperty("--jbt-drawer-width");
+    };
+  }, [variant, view]);
 
   const displayTree = useMemo(() => {
     if (!result?.tree) return null;
@@ -250,7 +262,10 @@ export function BlockerTreePanel({
   );
 
   if (variant === "drawer") {
-    return <div className={`jbt-root jbt-drawer${themeClass}`}>{body}</div>;
+    const wideClass = view === "lineage" ? " jbt-drawer-wide" : "";
+    return (
+      <div className={`jbt-root jbt-drawer${wideClass}${themeClass}`}>{body}</div>
+    );
   }
   return body;
 }
