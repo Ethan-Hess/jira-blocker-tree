@@ -1,0 +1,52 @@
+.jbt-launcher-slot {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Mirrors Jira's subtle header buttons (Automation, Open in coding tool). */
+.jbt-launcher-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ds-text-subtle, #505258);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.jbt-launcher-button:hover {
+  background: var(--ds-background-neutral-subtle-hovered, rgba(9, 30, 66, 0.06));
+}
+
+.jbt-launcher-button[aria-pressed="true"] {
+  background: var(--ds-background-selected, #e9f2ff);
+  color: var(--ds-text-selected, #0c66e4);
+}
+
+.jbt-launcher-button svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.jbt-launcher-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--ds-background-danger-bold, #c9372c);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}

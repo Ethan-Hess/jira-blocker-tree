@@ -1,0 +1,453 @@
+:host,
+.jbt-root {
+  --jbt-text: #172b4d;
+  --jbt-subtle: #626f86;
+  --jbt-border: #dfe1e6;
+  --jbt-bg: #ffffff;
+  --jbt-bg-sunken: #f7f8f9;
+  --jbt-link: #0c66e4;
+  --jbt-danger: #c9372c;
+}
+
+.jbt-root {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Ubuntu, Roboto, Helvetica,
+    Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--jbt-text);
+  box-sizing: border-box;
+}
+
+.jbt-root *,
+.jbt-root *::before,
+.jbt-root *::after {
+  box-sizing: border-box;
+}
+
+/* ---------- drawer shell ---------- */
+
+.jbt-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 2147483000;
+  display: flex;
+  flex-direction: column;
+  width: min(520px, 100vw);
+  height: 100vh;
+  background: var(--jbt-bg);
+  border-left: 1px solid var(--jbt-border);
+  box-shadow: -8px 0 24px rgba(9, 30, 66, 0.15);
+  animation: jbt-slide-in 140ms ease-out;
+}
+
+@keyframes jbt-slide-in {
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.jbt-embedded {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--jbt-bg);
+}
+
+/* ---------- header ---------- */
+
+.jbt-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--jbt-border);
+  flex: none;
+}
+
+.jbt-header-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.jbt-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.003em;
+}
+
+.jbt-subtitle {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--jbt-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jbt-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--jbt-subtle);
+  cursor: pointer;
+}
+
+.jbt-icon-button:hover:not(:disabled) {
+  background: rgba(9, 30, 66, 0.06);
+  color: var(--jbt-text);
+}
+
+.jbt-icon-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.jbt-icon-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.jbt-spin {
+  animation: jbt-spin 700ms linear infinite;
+}
+
+@keyframes jbt-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- toolbar ---------- */
+
+.jbt-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--jbt-border);
+  background: var(--jbt-bg-sunken);
+  flex: none;
+  flex-wrap: wrap;
+}
+
+.jbt-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.jbt-input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--jbt-border);
+  border-radius: 3px;
+  background: var(--jbt-bg);
+  font: inherit;
+  color: inherit;
+}
+
+.jbt-input:focus {
+  outline: none;
+  border-color: var(--jbt-link);
+  box-shadow: 0 0 0 1px var(--jbt-link);
+}
+
+.jbt-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--jbt-subtle);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.jbt-checkbox input {
+  margin: 0;
+  cursor: pointer;
+}
+
+/* ---------- messages ---------- */
+
+.jbt-banner {
+  margin: 12px 16px 0;
+  padding: 8px 12px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.jbt-banner-error {
+  background: #ffeceb;
+  color: #ae2e24;
+}
+
+.jbt-banner-warn {
+  background: #fff7d6;
+  color: #7f5f01;
+}
+
+.jbt-meta {
+  padding: 8px 16px 0;
+  font-size: 11px;
+  color: var(--jbt-subtle);
+}
+
+.jbt-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--jbt-subtle);
+  font-size: 13px;
+}
+
+/* ---------- tree ---------- */
+
+.jbt-tree {
+  flex: 1;
+  overflow: auto;
+  padding: 8px 8px 24px;
+}
+
+.jbt-node {
+  position: relative;
+}
+
+.jbt-children {
+  position: relative;
+  margin-left: 15px;
+  padding-left: 9px;
+  border-left: 1px solid var(--jbt-border);
+}
+
+.jbt-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 3px 8px 3px 0;
+  border-radius: 3px;
+}
+
+.jbt-row:hover {
+  background: var(--jbt-bg-sunken);
+}
+
+.jbt-row-root {
+  background: #f1f2f4;
+  font-weight: 500;
+}
+
+.jbt-expander {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--jbt-subtle);
+  cursor: pointer;
+  padding: 0;
+}
+
+.jbt-expander:hover:not(:disabled) {
+  background: rgba(9, 30, 66, 0.08);
+}
+
+.jbt-expander:disabled {
+  cursor: default;
+  opacity: 0;
+}
+
+.jbt-expander svg {
+  width: 12px;
+  height: 12px;
+  transition: transform 100ms ease;
+}
+
+.jbt-expander[aria-expanded="true"] svg {
+  transform: rotate(90deg);
+}
+
+.jbt-type {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.jbt-type-epic {
+  background: #8270db;
+}
+.jbt-type-story {
+  background: #4bade8;
+}
+.jbt-type-bug {
+  background: #e5493a;
+}
+.jbt-type-task {
+  background: #4bade8;
+}
+.jbt-type-other {
+  background: #8993a4;
+}
+
+.jbt-key {
+  flex: none;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--jbt-link);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.jbt-key:hover {
+  text-decoration: underline;
+}
+
+.jbt-key-done {
+  text-decoration: line-through;
+  color: var(--jbt-subtle);
+}
+
+.jbt-summary {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.jbt-summary-muted {
+  color: var(--jbt-subtle);
+  font-style: italic;
+}
+
+/* ---------- lozenges / badges ---------- */
+
+.jbt-lozenge {
+  flex: none;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jbt-lozenge-new {
+  background: #dcdfe4;
+  color: #44546f;
+}
+
+.jbt-lozenge-indeterminate {
+  background: #e9f2ff;
+  color: #0055cc;
+}
+
+.jbt-lozenge-done {
+  background: #dcfff1;
+  color: #216e4e;
+}
+
+.jbt-lozenge-unknown {
+  background: #f1f2f4;
+  color: #626f86;
+}
+
+.jbt-blocked-flag {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: #ffeceb;
+  color: var(--jbt-danger);
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.jbt-blocked-flag svg {
+  width: 10px;
+  height: 10px;
+}
+
+.jbt-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 50%;
+  background: #dcdfe4;
+  color: #44546f;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.jbt-avatar-unassigned {
+  background: transparent;
+  border: 1px dashed #b3b9c4;
+  color: #8993a4;
+}
+
+/* ---------- skeleton ---------- */
+
+.jbt-skeleton {
+  padding: 8px 16px;
+}
+
+.jbt-skeleton-row {
+  height: 14px;
+  margin-bottom: 10px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #f1f2f4 25%, #e9eaee 37%, #f1f2f4 63%);
+  background-size: 400% 100%;
+  animation: jbt-shimmer 1.1s ease-in-out infinite;
+}
+
+@keyframes jbt-shimmer {
+  from {
+    background-position: 100% 50%;
+  }
+  to {
+    background-position: 0 50%;
+  }
+}
