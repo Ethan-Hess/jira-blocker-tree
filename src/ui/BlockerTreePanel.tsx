@@ -231,7 +231,10 @@ export function BlockerTreePanel({
         {!loading && view === "lineage" && result && lineageFocusKey && (
           <LineageView
             focusKey={lineageFocusKey}
+            rootKey={result.rootKey}
+            epicChildKeys={result.epicChildKeys}
             issuesByKey={result.issuesByKey}
+            hideDone={hideDone}
             onFocusKey={setSelectedKey}
           />
         )}

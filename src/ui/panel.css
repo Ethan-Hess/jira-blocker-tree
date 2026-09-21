@@ -649,48 +649,132 @@
   color: var(--jbt-subtle);
 }
 
-/* ---------- lineage view ---------- */
+/* ---------- pedigree (lineage) view ---------- */
 
-.jbt-lineage {
+.jbt-pedigree {
   flex: 1;
-  overflow: auto;
-  padding: 12px 16px 24px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.jbt-lineage-section {
+.jbt-pedigree-toolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--jbt-border);
+  background: var(--jbt-bg-sunken);
+}
+
+.jbt-pedigree-legend {
   margin: 0;
+  font-size: 11px;
+  color: var(--jbt-subtle);
+  line-height: 1.35;
 }
 
-.jbt-lineage-heading {
-  margin: 0 0 8px;
+.jbt-pedigree-root {
+  flex: none;
+  border: 1px solid var(--jbt-border);
+  border-radius: 3px;
+  background: var(--jbt-bg);
+  color: var(--jbt-link);
+  font: inherit;
   font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+
+.jbt-pedigree-root:hover {
+  background: var(--jbt-hover);
+}
+
+.jbt-pedigree-empty {
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--jbt-subtle);
+}
+
+.jbt-pedigree-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.jbt-pedigree-canvas {
+  position: relative;
+  min-width: min-content;
+  padding: 16px 12px 32px;
+}
+
+.jbt-pedigree-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.jbt-pedigree-edge {
+  stroke: var(--jbt-border);
+  stroke-width: 1.5;
+}
+
+.jbt-pedigree-edge-active {
+  stroke: var(--jbt-link);
+  stroke-width: 2;
+}
+
+.jbt-pedigree-layer {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  padding: 12px 4px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.jbt-pedigree-layer-alt {
+  background: var(--jbt-bg-sunken);
+}
+
+.jbt-pedigree-layer-label {
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--jbt-subtle);
+  padding-top: 8px;
+  text-align: right;
+  padding-right: 4px;
 }
 
-.jbt-lineage-empty {
-  margin: 0 0 8px;
-  font-size: 12px;
-  color: var(--jbt-subtle);
-}
-
-.jbt-lineage-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.jbt-pedigree-layer-row {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-start;
+  min-width: 0;
 }
 
-.jbt-lineage-card {
+.jbt-pedigree-node {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
-  width: 100%;
+  width: 168px;
+  max-width: 168px;
   padding: 8px 10px;
   border: 1px solid var(--jbt-border);
   border-radius: 4px;
@@ -701,84 +785,79 @@
   color: inherit;
 }
 
-.jbt-lineage-card:hover {
+.jbt-pedigree-node:hover {
   background: var(--jbt-bg-sunken);
+  border-color: var(--jbt-link);
 }
 
-.jbt-lineage-card-missing {
-  border-style: dashed;
-}
-
-.jbt-lineage-summary {
-  font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-}
-
-.jbt-lineage-card-meta,
-.jbt-lineage-focus-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
-.jbt-lineage-assignee {
-  font-size: 11px;
-  color: var(--jbt-subtle);
-}
-
-.jbt-lineage-muted {
-  font-size: 11px;
-  color: var(--jbt-subtle);
-  font-style: italic;
-}
-
-.jbt-lineage-connector {
-  display: flex;
-  justify-content: center;
-  padding: 8px 0;
-}
-
-.jbt-lineage-connector-label {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--jbt-subtle);
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--jbt-bg-sunken);
-}
-
-.jbt-lineage-focus-card {
-  padding: 12px;
-  border: 1px solid var(--jbt-border);
-  border-radius: 4px;
+.jbt-pedigree-node-selected {
   background: var(--jbt-bg-selected);
+  border-color: var(--jbt-link);
+  box-shadow: 0 0 0 1px var(--jbt-link);
 }
 
-.jbt-lineage-focus-top {
+.jbt-pedigree-node-critical {
+  box-shadow: inset 3px 0 0 var(--jbt-critical-accent);
+}
+
+.jbt-pedigree-node-done {
+  opacity: 0.72;
+}
+
+.jbt-pedigree-node-done .jbt-key,
+.jbt-pedigree-node-done .jbt-pedigree-summary {
+  text-decoration: line-through;
+  color: var(--jbt-subtle);
+}
+
+.jbt-pedigree-node-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 6px;
+  width: 100%;
 }
 
-.jbt-lineage-leverage {
-  font-size: 12px;
+.jbt-pedigree-lev {
+  font-size: 11px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--jbt-subtle);
 }
 
-.jbt-lineage-focus-summary {
-  margin: 0 0 8px;
-  font-size: 13px;
-  line-height: 1.4;
+.jbt-pedigree-summary {
+  font-size: 11px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  width: 100%;
+}
+
+.jbt-pedigree-node-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.jbt-pedigree-node-meta .jbt-lozenge {
+  max-width: 88px;
+  font-size: 9px;
+}
+
+.jbt-pedigree-badge {
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--jbt-subtle);
+  padding: 1px 4px;
+  border-radius: 2px;
+  border: 1px solid var(--jbt-border);
+  background: var(--jbt-bg-sunken);
 }
 
 /* ---------- skeleton ---------- */

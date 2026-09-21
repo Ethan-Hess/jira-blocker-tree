@@ -191,6 +191,7 @@ export async function buildBlockingTree(
     ready: [],
     criticalPath: [],
     issuesByKey: {},
+    epicChildKeys: [],
     nodeCount: ctx.issues.size,
     truncated: ctx.truncated,
   });
@@ -208,6 +209,7 @@ export async function buildBlockingTree(
       ready: ctx.analysis.ready,
       criticalPath: ctx.analysis.criticalPath,
       issuesByKey,
+      epicChildKeys: [...ctx.epicChildKeys],
       nodeCount: ctx.issues.size,
       truncated: ctx.truncated,
     };

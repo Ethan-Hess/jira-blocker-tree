@@ -37,6 +37,7 @@ export interface BuildTreeResult {
   ready: ReadyItem[];
   criticalPath: string[];
   issuesByKey: Record<string, IssueSummary>;
+  epicChildKeys: string[];
   error?: string;
   nodeCount: number;
   truncated: boolean;
