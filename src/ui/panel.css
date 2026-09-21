@@ -322,7 +322,7 @@
 
 .jbt-tree-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 52px 76px 92px 40px;
+  grid-template-columns: minmax(0, 1fr) 52px 92px 40px;
   align-items: center;
   column-gap: 6px;
 }
@@ -361,7 +361,6 @@
 }
 
 .jbt-col-leverage,
-.jbt-col-priority,
 .jbt-col-status,
 .jbt-col-assignee {
   min-width: 0;

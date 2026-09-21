@@ -3,7 +3,6 @@ import type { IssueSummary, TreeNode } from "../shared/types";
 export type TreeSortColumn =
   | "issue"
   | "leverage"
-  | "priority"
   | "status"
   | "assignee";
 
@@ -31,9 +30,6 @@ function compareIssues(a: IssueSummary, b: IssueSummary, sort: TreeSortState): n
       break;
     case "leverage":
       cmp = a.leverage - b.leverage;
-      break;
-    case "priority":
-      cmp = a.priorityRank - b.priorityRank;
       break;
     case "status":
       cmp = a.statusName.localeCompare(b.statusName);
@@ -73,7 +69,6 @@ export function toggleTreeSort(
   if (current.column === column) {
     return { column, dir: current.dir === "asc" ? "desc" : "asc" };
   }
-  const defaultDir: TreeSortDir =
-    column === "leverage" || column === "priority" ? "desc" : "asc";
+  const defaultDir: TreeSortDir = column === "leverage" ? "desc" : "asc";
   return { column, dir: defaultDir };
 }

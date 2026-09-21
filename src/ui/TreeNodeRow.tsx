@@ -2,7 +2,6 @@ import { useState } from "react";
 import { issueBrowseUrl } from "../shared/issueKey";
 import type { IssueSummary, TreeNode } from "../shared/types";
 import { ChevronIcon } from "./icons";
-import { PriorityLozenge } from "./PriorityLozenge";
 
 function typeClass(issueTypeName: string): string {
   const name = issueTypeName.toLowerCase();
@@ -137,9 +136,6 @@ export function TreeNodeRow({
           <>
             <div className="jbt-col-leverage" title="Leverage (impact × priority weight)">
               {node.issue.leverage}
-            </div>
-            <div className="jbt-col-priority">
-              <PriorityLozenge issue={node.issue} />
             </div>
             <div className="jbt-col-status">
               <StatusLozenge issue={node.issue} />

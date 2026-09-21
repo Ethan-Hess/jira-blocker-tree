@@ -8,7 +8,6 @@ interface TreeColumnHeaderProps {
 const COLUMNS: { id: TreeSortColumn; label: string }[] = [
   { id: "issue", label: "Issue" },
   { id: "leverage", label: "Leverage" },
-  { id: "priority", label: "Priority" },
   { id: "status", label: "Status" },
   { id: "assignee", label: "Assignee" },
 ];
