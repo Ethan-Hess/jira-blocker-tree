@@ -89,10 +89,36 @@ export function LineageView({
 
   const parallelHint =
     orientation === "tb"
-      ? "Same row = can work in parallel · lines = blocks"
-      : "Same column = can work in parallel · lines = blocks";
+      ? "Same row = parallel · solid = next layer · dotted = skips a layer"
+      : "Same column = parallel · solid = next layer · dotted = skips a layer";
 
   const nodeList = [...geometry.nodes.values()];
+  const focusInGraph = geometry.nodes.has(focusKey);
+
+  const edgeClass = (edge: {
+    from: string;
+    to: string;
+    skipsLayers: boolean;
+  }): string => {
+    const parts = ["jbt-pedigree-edge"];
+    if (edge.skipsLayers) parts.push("jbt-pedigree-edge-skip");
+    if (focusInGraph) {
+      if (edge.from === focusKey || edge.to === focusKey) {
+        parts.push("jbt-pedigree-edge-active");
+      } else {
+        parts.push("jbt-pedigree-edge-muted");
+      }
+    }
+    return parts.join(" ");
+  };
+
+  // Draw muted first so active links paint on top.
+  const orderedEdges = [...geometry.edgePaths].sort((a, b) => {
+    const aActive = focusInGraph && (a.from === focusKey || a.to === focusKey);
+    const bActive = focusInGraph && (b.from === focusKey || b.to === focusKey);
+    if (aActive === bActive) return 0;
+    return aActive ? 1 : -1;
+  });
 
   return (
     <div className={`jbt-pedigree jbt-pedigree-${orientation}`}>
@@ -137,18 +163,63 @@ export function LineageView({
             height={geometry.height}
             aria-hidden
           >
-            {geometry.edgePaths.map((edge) => {
-              const active = focusKey === edge.from || focusKey === edge.to;
+            <defs>
+              <marker
+                id="jbt-arrow-skip"
+                viewBox="0 0 8 8"
+                refX="7"
+                refY="4"
+                markerWidth="7"
+                markerHeight="7"
+                orient="auto"
+                markerUnits="userSpaceOnUse"
+              >
+                <path d="M 0 0 L 8 4 L 0 8 z" className="jbt-pedigree-arrow" />
+              </marker>
+              <marker
+                id="jbt-arrow-skip-active"
+                viewBox="0 0 8 8"
+                refX="7"
+                refY="4"
+                markerWidth="8"
+                markerHeight="8"
+                orient="auto"
+                markerUnits="userSpaceOnUse"
+              >
+                <path d="M 0 0 L 8 4 L 0 8 z" className="jbt-pedigree-arrow-active" />
+              </marker>
+              <marker
+                id="jbt-arrow-skip-muted"
+                viewBox="0 0 8 8"
+                refX="7"
+                refY="4"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto"
+                markerUnits="userSpaceOnUse"
+              >
+                <path d="M 0 0 L 8 4 L 0 8 z" className="jbt-pedigree-arrow-muted" />
+              </marker>
+            </defs>
+            {orderedEdges.map((edge) => {
+              const className = edgeClass(edge);
+              let markerEnd: string | undefined;
+              if (edge.skipsLayers) {
+                if (className.includes("jbt-pedigree-edge-active")) {
+                  markerEnd = "url(#jbt-arrow-skip-active)";
+                } else if (className.includes("jbt-pedigree-edge-muted")) {
+                  markerEnd = "url(#jbt-arrow-skip-muted)";
+                } else {
+                  markerEnd = "url(#jbt-arrow-skip)";
+                }
+              }
               return (
                 <path
                   key={`${edge.from}-${edge.to}`}
                   d={edge.d}
-                  className={
-                    active
-                      ? "jbt-pedigree-edge jbt-pedigree-edge-active"
-                      : "jbt-pedigree-edge"
-                  }
+                  className={className}
                   fill="none"
+                  markerEnd={markerEnd}
                 />
               );
             })}

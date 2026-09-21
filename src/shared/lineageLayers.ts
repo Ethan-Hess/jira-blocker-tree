@@ -91,6 +91,47 @@ function generationLabel(index: number): string {
   return `Layer ${index}`;
 }
 
+/**
+ * Ensure A→B (A blocks B) implies layer(B) > layer(A) when A is still open.
+ * Cycles stop growing once a layer would exceed the node count.
+ */
+function enforceBlockLayerOrder(
+  layerByKey: Map<string, number>,
+  included: Set<string>,
+  issuesByKey: Record<string, IssueSummary>,
+): void {
+  const maxAllowed = Math.max(included.size - 1, 0);
+  const edges: { from: string; to: string }[] = [];
+
+  for (const key of included) {
+    const issue = issuesByKey[key];
+    if (!issue || issue.statusCategory === "done") continue;
+    for (const blockedKey of issue.blockedKeys) {
+      if (!included.has(blockedKey)) continue;
+      const blocked = issuesByKey[blockedKey];
+      if (!blocked) continue;
+      edges.push({ from: key, to: blockedKey });
+    }
+  }
+
+  let changed = true;
+  let guard = 0;
+  while (changed && guard < included.size + 2) {
+    changed = false;
+    guard += 1;
+    for (const { from, to } of edges) {
+      const fromLayer = layerByKey.get(from) ?? 0;
+      const toLayer = layerByKey.get(to) ?? 0;
+      const required = fromLayer + 1;
+      if (required > maxAllowed) continue;
+      if (toLayer < required) {
+        layerByKey.set(to, required);
+        changed = true;
+      }
+    }
+  }
+}
+
 export function buildLineageLayout(
   issuesByKey: Record<string, IssueSummary>,
   rootKey: string,
@@ -112,6 +153,8 @@ export function buildLineageLayout(
       computeLayer(key, included, issuesByKey, memo, new Set()),
     );
   }
+
+  enforceBlockLayerOrder(layerByKey, included, issuesByKey);
 
   const maxLayer =
     layerByKey.size > 0 ? Math.max(...layerByKey.values()) : -1;
