@@ -4,9 +4,14 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite build --watch",
+    "dev": "vite",
+    "build:watch": "vite build --watch",
     "build": "tsc --noEmit && vite build",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "chrome": "node scripts/chrome.mjs",
+    "reload": "node scripts/load-extension.mjs",
+    "inspect": "node scripts/inspect.mjs",
+    "extensions": "node scripts/extensions.mjs"
   },
   "dependencies": {
     "react": "^19.1.0",
@@ -18,6 +23,7 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
+    "playwright-core": "^1.63.0",
     "typescript": "^5.8.3",
     "vite": "^6.3.5"
   }

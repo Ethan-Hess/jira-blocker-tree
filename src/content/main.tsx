@@ -89,6 +89,13 @@ function DrawerApp() {
   const issueKey = useIssueKeyFromPage();
   const [open, setOpen] = useOpenState();
 
+  useEffect(() => {
+    document.documentElement.classList.toggle("jbt-drawer-open", open);
+    return () => {
+      document.documentElement.classList.remove("jbt-drawer-open");
+    };
+  }, [open]);
+
   if (!open) return null;
   return (
     <BlockerTreePanel

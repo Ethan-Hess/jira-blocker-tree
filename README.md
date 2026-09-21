@@ -48,11 +48,57 @@ Issues are loaded breadth-first, one batched request per level:
 
 ## Development
 
+### Shared debug browser (recommended)
+
+This is the workflow that lets a coding agent see the same browser you do.
+
 ```bash
-npm run dev   # watch build
+npm run dev      # terminal 1: Vite dev server, auto-reloads the extension on save
+npm run chrome   # terminal 2: launches the debug Chrome and installs dist/
 ```
 
-After changes, click **Reload** on the extension card in `chrome://extensions`.
+`npm run chrome` starts Chrome with a dedicated profile under `.devtools/chrome-profile`
+and remote debugging on port 9222, then installs `dist/` over CDP. Log into Jira once
+in that window; the profile persists, so later launches skip the login.
+
+Inspect what the extension is doing at any time:
+
+```bash
+npm run inspect                      # current Jira tab
+npm run inspect -- --reload          # reload the page first
+npm run inspect -- --open            # click Blockers and wait for the tree
+npm run inspect -- --url=https://your-site.atlassian.net
+```
+
+It reports whether the launcher and drawer mounted, how many rows rendered, any
+page errors and console output, and writes a screenshot to `.devtools/shot.png`.
+
+```bash
+npm run reload       # reinstall dist/ over CDP after a manual build
+npm run extensions   # list loaded extensions, screenshot chrome://extensions
+```
+
+### Why a separate Chrome profile
+
+Chrome cannot enable the debugging port on a profile that is already open, so
+the debug browser has to be its own instance.
+
+Chrome 137 also removed the `--load-extension` switch, so the extension is
+installed after launch through the CDP `Extensions.loadUnpacked` command, which
+is why the browser starts with `--enable-unsafe-extension-debugging`. CDP-installed
+extensions do not survive a restart, so `npm run chrome` reinstalls on every launch.
+
+Do not use `--disable-extensions-except` with this setup; it silently suppresses
+the CDP-installed extension.
+
+### Plain workflow
+
+```bash
+npm run build:watch   # rebuild on save, no auto-reload
+```
+
+Then click **Reload** on the extension card in `chrome://extensions` and refresh
+the Jira tab, since the already-injected content script keeps running old code.
 
 Shared logic lives under `src/shared/`:
 

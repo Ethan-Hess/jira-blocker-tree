@@ -14,10 +14,11 @@ export default defineManifest({
   },
   content_scripts: [
     {
+      // Boards and backlogs open issues in a modal without a /browse/ URL,
+      // so the script runs across the Jira surface and decides per page.
       matches: [
         "https://your-site.atlassian.net/browse/*",
-        "https://your-site.atlassian.net/jira/*/browse/*",
-        "https://your-site.atlassian.net/jira/software/*/browse/*",
+        "https://your-site.atlassian.net/jira/*",
       ],
       js: ["src/content/main.tsx"],
       css: ["src/content/content.css"],

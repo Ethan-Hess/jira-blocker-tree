@@ -3,6 +3,19 @@
   align-items: center;
 }
 
+/*
+ * The panel host is a zero-height div at the end of body; the drawer inside it
+ * is position:fixed. Without this, the host swallows clicks aimed at the page.
+ */
+#jbt-panel-host {
+  pointer-events: none;
+}
+
+/* Shift the page instead of covering it, so the issue fields stay readable. */
+html.jbt-drawer-open body {
+  margin-right: var(--jbt-drawer-width, 460px) !important;
+}
+
 /* Mirrors Jira's subtle header buttons (Automation, Open in coding tool). */
 .jbt-launcher-button {
   display: inline-flex;
