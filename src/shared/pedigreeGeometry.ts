@@ -1,5 +1,5 @@
 import type { IssueSummary } from "./types";
-import { layerLabel, type LineageEdge, type LineageLayout } from "./lineageLayers";
+import type { LineageEdge, LineageLayout } from "./lineageLayers";
 
 export type PedigreeOrientation = "tb" | "lr";
 
@@ -47,8 +47,10 @@ function barycenterLayers(layout: LineageLayout): LineageLayout["layers"] {
   const rows = layout.layers.map((row) => ({
     layerIndex: row.layerIndex,
     issues: [...row.issues],
+    label: row.label,
   }));
 
+  // Prefer keeping relative order within earlier layers.
   for (let li = 1; li < rows.length; li += 1) {
     const prevKeys = new Set(rows[li - 1].issues.map((i) => i.key));
     const prevIndex = (key: string): number => {
@@ -110,7 +112,7 @@ export function buildPedigreeGeometry(
         layerIndex: row.layerIndex,
         x: PEDIGREE_PAD,
         y: y + PEDIGREE_CARD_H / 2 - 6,
-        label: layerLabel(row.layerIndex),
+        label: row.label,
       });
 
       row.issues.forEach((issue, j) => {
@@ -139,7 +141,7 @@ export function buildPedigreeGeometry(
         layerIndex: row.layerIndex,
         x,
         y: PEDIGREE_PAD,
-        label: layerLabel(row.layerIndex),
+        label: row.label,
       });
 
       row.issues.forEach((issue, j) => {

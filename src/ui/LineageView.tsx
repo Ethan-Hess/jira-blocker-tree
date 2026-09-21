@@ -79,16 +79,6 @@ export function LineageView({
     });
   }, [focusKey, geometry]);
 
-  const focusRoot = () => {
-    onFocusKey(rootKey);
-    requestAnimationFrame(() => {
-      nodeRefs.current.get(rootKey)?.scrollIntoView({
-        block: "nearest",
-        inline: "nearest",
-      });
-    });
-  };
-
   if (layout.layers.length === 0) {
     return (
       <div className="jbt-pedigree">
@@ -133,11 +123,6 @@ export function LineageView({
               Left→
             </button>
           </div>
-          {focusKey !== rootKey && (
-            <button type="button" className="jbt-pedigree-root" onClick={focusRoot}>
-              Root
-            </button>
-          )}
         </div>
       </div>
 
@@ -182,7 +167,6 @@ export function LineageView({
           {nodeList.map((box) => {
             const issue = box.issue;
             const isSelected = focusKey === issue.key;
-            const isRoot = issue.key === rootKey;
             const isEpicChild = epicChildSet.has(issue.key);
             const isDone = issue.statusCategory === "done";
 
@@ -229,8 +213,7 @@ export function LineageView({
                 <div className="jbt-pedigree-node-meta">
                   <StatusLozenge issue={issue} />
                   <Avatar assignee={issue.assigneeDisplayName} />
-                  {isRoot && <span className="jbt-pedigree-badge">root</span>}
-                  {isEpicChild && !isRoot && (
+                  {isEpicChild && (
                     <span className="jbt-pedigree-badge">epic</span>
                   )}
                 </div>

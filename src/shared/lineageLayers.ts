@@ -8,6 +8,8 @@ export interface LineageEdge {
 export interface LineageLayerRow {
   layerIndex: number;
   issues: IssueSummary[];
+  /** Display label for this generation (Ready / Layer N). */
+  label: string;
 }
 
 export interface LineageLayout {
@@ -21,8 +23,10 @@ function shouldInclude(
   hideDone: boolean,
   rootKey: string,
 ): boolean {
+  // Pedigree shows work under the epic, never the epic/root itself.
+  if (issue.key === rootKey) return false;
   if (!hideDone) return true;
-  return issue.statusCategory !== "done" || issue.key === rootKey;
+  return issue.statusCategory !== "done";
 }
 
 function openBlockerKeys(
@@ -82,6 +86,11 @@ function sortLayer(issues: IssueSummary[]): IssueSummary[] {
   );
 }
 
+function generationLabel(index: number): string {
+  if (index === 0) return "Ready";
+  return `Layer ${index}`;
+}
+
 export function buildLineageLayout(
   issuesByKey: Record<string, IssueSummary>,
   rootKey: string,
@@ -104,9 +113,10 @@ export function buildLineageLayout(
     );
   }
 
-  const maxLayer = Math.max(0, ...layerByKey.values());
+  const maxLayer =
+    layerByKey.size > 0 ? Math.max(...layerByKey.values()) : -1;
   const layerBuckets: IssueSummary[][] = Array.from(
-    { length: maxLayer + 1 },
+    { length: Math.max(0, maxLayer + 1) },
     () => [],
   );
 
@@ -121,7 +131,11 @@ export function buildLineageLayout(
   for (let i = 0; i < layerBuckets.length; i += 1) {
     const issues = sortLayer(layerBuckets[i]);
     if (issues.length > 0) {
-      layers.push({ layerIndex: i, issues });
+      layers.push({
+        layerIndex: i,
+        issues,
+        label: generationLabel(i),
+      });
     }
   }
 
@@ -139,5 +153,5 @@ export function buildLineageLayout(
 }
 
 export function layerLabel(index: number): string {
-  return index === 0 ? "Ready" : `Layer ${index}`;
+  return generationLabel(index);
 }
