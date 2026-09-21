@@ -1,0 +1,13 @@
+---
+description: Jira REST session client and tree assembly
+globs: src/shared/**/*.ts
+alwaysApply: false
+---
+
+# Jira client and tree
+
+- All REST goes through `src/shared/jira/client.ts`. Search uses `/rest/api/3/search/jql` (POST, `nextPageToken`), not the deprecated `/search`.
+- Origin is `JIRA_ORIGIN` in `src/shared/constants.ts`. Encode issue keys in URLs.
+- Blocks link type is `"Blocks"` (inward: is blocked by). Do not treat other link types as blockers unless asked.
+- `buildBlockingTree.ts` loads the root and `parentEpic` children in parallel, then walks inward blockers level by level.
+- Map API payloads in `src/shared/jira/mapIssue.ts`. Keep `JiraIssue` types in `src/shared/jira/types.ts`.

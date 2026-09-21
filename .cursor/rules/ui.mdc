@@ -1,0 +1,13 @@
+---
+description: React panel and content-script UI patterns
+globs: src/ui/**/*.{ts,tsx,css},src/content/**/*.{ts,tsx,css},src/sidepanel/**
+alwaysApply: false
+---
+
+# UI
+
+- Drawer and side panel share `src/ui/BlockerTreePanel.tsx`. Prefer changes there over forking layouts.
+- Content script injects `panel.css` into the shadow root (`?inline`). Launcher-only styles stay in `src/content/content.css`.
+- Color mode: `src/ui/useColorMode.ts`. Match Jira lozenges via `PriorityLozenge` rather than inventing new status colors.
+- Keep the header **Blockers** button resilient to Jira re-renders (`observeHeader` / `ensureLauncherSlot`).
+- TypeScript + React 19 function components. No new UI libraries unless asked.

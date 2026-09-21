@@ -96,14 +96,13 @@ export function LineageView({
   const focusInGraph = geometry.nodes.has(focusKey);
 
   const edgeClass = (edge: {
-    from: string;
-    to: string;
+    related: string[];
     skipsLayers: boolean;
   }): string => {
     const parts = ["jbt-pedigree-edge"];
     if (edge.skipsLayers) parts.push("jbt-pedigree-edge-skip");
     if (focusInGraph) {
-      if (edge.from === focusKey || edge.to === focusKey) {
+      if (edge.related.includes(focusKey)) {
         parts.push("jbt-pedigree-edge-active");
       } else {
         parts.push("jbt-pedigree-edge-muted");
@@ -114,8 +113,8 @@ export function LineageView({
 
   // Draw muted first so active links paint on top.
   const orderedEdges = [...geometry.edgePaths].sort((a, b) => {
-    const aActive = focusInGraph && (a.from === focusKey || a.to === focusKey);
-    const bActive = focusInGraph && (b.from === focusKey || b.to === focusKey);
+    const aActive = focusInGraph && a.related.includes(focusKey);
+    const bActive = focusInGraph && b.related.includes(focusKey);
     if (aActive === bActive) return 0;
     return aActive ? 1 : -1;
   });
@@ -204,7 +203,7 @@ export function LineageView({
             {orderedEdges.map((edge) => {
               const className = edgeClass(edge);
               let markerEnd: string | undefined;
-              if (edge.skipsLayers) {
+              if (edge.showArrow) {
                 if (className.includes("jbt-pedigree-edge-active")) {
                   markerEnd = "url(#jbt-arrow-skip-active)";
                 } else if (className.includes("jbt-pedigree-edge-muted")) {
@@ -215,7 +214,7 @@ export function LineageView({
               }
               return (
                 <path
-                  key={`${edge.from}-${edge.to}`}
+                  key={edge.id}
                   d={edge.d}
                   className={className}
                   fill="none"

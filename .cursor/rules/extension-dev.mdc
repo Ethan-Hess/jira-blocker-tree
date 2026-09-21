@@ -1,0 +1,14 @@
+---
+description: Debug Chrome, CRXJS, and Manifest V3 conventions
+globs: manifest.config.ts,vite.config.ts,scripts/**,src/background/**,src/content/**
+alwaysApply: false
+---
+
+# Extension development
+
+- Manifest lives in `manifest.config.ts` (CRXJS `defineManifest`). Do not hand-edit a built `dist/manifest.json`.
+- Background is a module service worker. Tree cache TTL is 60s; **Refresh** must pass `force` and skip cache.
+- Messages: typed `BackgroundRequest` / `BackgroundResponse` in `src/shared/types.ts`, sent via `src/shared/messaging.ts`.
+- Content script matches `/browse/*` and `/jira/*` because boards open issues in a modal without a browse URL.
+- `npm run chrome` uses `.devtools/chrome-profile` and CDP `Extensions.loadUnpacked` on port 9222. Reinstall after restart; profile login persists.
+- After UI or content-script changes, confirm with `npm run inspect -- --open` (or reload + screenshot via `scripts/inspect.mjs`).

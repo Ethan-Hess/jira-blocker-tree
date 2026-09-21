@@ -12,9 +12,6 @@ export const PEDIGREE_PAD = 24;
 /** Gutter for layer labels (TB: left of cards; LR: above cards). */
 export const PEDIGREE_LABEL_STRIP = 56;
 
-const PORT_INSET = 16;
-const LANE_SPACING = 6;
-
 export interface PedigreeNodeBox {
   key: string;
   issue: IssueSummary;
@@ -33,11 +30,16 @@ export interface PedigreeLayerLabel {
 }
 
 export interface PedigreeEdgePath {
+  id: string;
   from: string;
   to: string;
   d: string;
-  /** True when the edge spans more than one layer gap (passes through a layer). */
+  /** True when this segment uses skip (dotted) styling. */
   skipsLayers: boolean;
+  /** Draw arrowhead at path end (skip branches only). */
+  showArrow: boolean;
+  /** Keys that activate this segment on focus. */
+  related: string[];
 }
 
 export interface PedigreeGeometry {
@@ -86,7 +88,6 @@ function barycenterLayers(layout: LineageLayout): LineageLayout["layers"] {
     });
   };
 
-  // Two passes (down then up) cut crossings without a full Sugiyama solver.
   for (let pass = 0; pass < 2; pass += 1) {
     for (let li = 1; li < rows.length; li += 1) {
       sortByNeighbors(li, li - 1, true);
@@ -97,114 +98,6 @@ function barycenterLayers(layout: LineageLayout): LineageLayout["layers"] {
   }
 
   return rows;
-}
-
-function portOffset(
-  index: number,
-  count: number,
-  size: number,
-): number {
-  if (count <= 1) return size / 2;
-  const usable = Math.max(size - PORT_INSET * 2, size * 0.4);
-  return PORT_INSET + ((index + 0.5) / count) * usable;
-}
-
-function laneOffset(index: number, count: number, gapSpan: number): number {
-  if (count <= 1) return 0;
-  const maxSpread = Math.min(
-    (count - 1) * LANE_SPACING,
-    Math.max(gapSpan - 12, LANE_SPACING),
-  );
-  const step = count > 1 ? maxSpread / (count - 1) : 0;
-  return -maxSpread / 2 + index * step;
-}
-
-function busPathTb(
-  from: PedigreeNodeBox,
-  to: PedigreeNodeBox,
-  outIndex: number,
-  outCount: number,
-  inIndex: number,
-  inCount: number,
-  laneIndex: number,
-  laneCount: number,
-): string {
-  const x1 = from.x + portOffset(outIndex, outCount, from.w);
-  const y1 = from.y + from.h;
-  const x2 = to.x + portOffset(inIndex, inCount, to.w);
-  const y2 = to.y;
-  const gapSpan = Math.abs(y2 - y1);
-  const mid = (y1 + y2) / 2;
-  const busY = mid + laneOffset(laneIndex, laneCount, gapSpan);
-  return `M ${x1} ${y1} L ${x1} ${busY} L ${x2} ${busY} L ${x2} ${y2}`;
-}
-
-function busPathLr(
-  from: PedigreeNodeBox,
-  to: PedigreeNodeBox,
-  outIndex: number,
-  outCount: number,
-  inIndex: number,
-  inCount: number,
-  laneIndex: number,
-  laneCount: number,
-): string {
-  const x1 = from.x + from.w;
-  const y1 = from.y + portOffset(outIndex, outCount, from.h);
-  const x2 = to.x;
-  const y2 = to.y + portOffset(inIndex, inCount, to.h);
-  const gapSpan = Math.abs(x2 - x1);
-  const mid = (x1 + x2) / 2;
-  const busX = mid + laneOffset(laneIndex, laneCount, gapSpan);
-  return `M ${x1} ${y1} L ${busX} ${y1} L ${busX} ${y2} L ${x2} ${y2}`;
-}
-
-/**
- * Continuous skip-layer path: horizontal jog only in the gutter next to the
- * source, then a straight vertical run that may pass through intermediate cards.
- */
-function skipBusPathTb(
-  from: PedigreeNodeBox,
-  to: PedigreeNodeBox,
-  outIndex: number,
-  outCount: number,
-  inIndex: number,
-  inCount: number,
-  laneIndex: number,
-  laneCount: number,
-): string {
-  const x1 = from.x + portOffset(outIndex, outCount, from.w);
-  const y1 = from.y + from.h;
-  const x2 = to.x + portOffset(inIndex, inCount, to.w);
-  const y2 = to.y;
-  const lane = laneOffset(laneIndex, laneCount, PEDIGREE_LAYER_GAP);
-  const busY =
-    y2 >= y1
-      ? y1 + PEDIGREE_LAYER_GAP / 2 + lane
-      : from.y - PEDIGREE_LAYER_GAP / 2 + lane;
-  return `M ${x1} ${y1} L ${x1} ${busY} L ${x2} ${busY} L ${x2} ${y2}`;
-}
-
-function skipBusPathLr(
-  from: PedigreeNodeBox,
-  to: PedigreeNodeBox,
-  outIndex: number,
-  outCount: number,
-  inIndex: number,
-  inCount: number,
-  laneIndex: number,
-  laneCount: number,
-): string {
-  const x1 = from.x + from.w;
-  const y1 = from.y + portOffset(outIndex, outCount, from.h);
-  const x2 = to.x;
-  const y2 = to.y + portOffset(inIndex, inCount, to.h);
-  const lane = laneOffset(laneIndex, laneCount, PEDIGREE_LAYER_GAP);
-  const busX =
-    x2 >= x1
-      ? x1 + PEDIGREE_LAYER_GAP / 2 + lane
-      : from.x - PEDIGREE_LAYER_GAP / 2 + lane;
-  return `M ${x1} ${y1} L ${busX} ${y1} L ${busX} ${y2} L ${x2} ${y2}`;
 }
 
 /** Same-layer / cycle fallback: connect card sides instead of top/bottom. */
@@ -228,24 +121,116 @@ function peerPathLr(from: PedigreeNodeBox, to: PedigreeNodeBox): string {
   return `M ${x1} ${y1} L ${x1} ${busY} L ${x2} ${busY} L ${x2} ${y2}`;
 }
 
-function layerBandKey(fromLayer: number, toLayer: number): string {
-  return `${fromLayer}->${toLayer}`;
+interface BundleTarget {
+  edge: LineageEdge;
+  box: PedigreeNodeBox;
+  skipsLayers: boolean;
 }
 
-/** Lane group for skip edges that share the source-adjacent gutter. */
-function skipLaneBandKey(
+function bundlePathsTb(
   from: PedigreeNodeBox,
-  to: PedigreeNodeBox,
-  orientation: PedigreeOrientation,
-): string {
-  if (orientation === "tb") {
-    return to.layerIndex >= from.layerIndex
-      ? `skip-tb-below-${from.layerIndex}`
-      : `skip-tb-above-${from.layerIndex}`;
+  targets: BundleTarget[],
+  downward: boolean,
+  idPrefix: string,
+): PedigreeEdgePath[] {
+  if (targets.length === 0) return [];
+
+  const sorted = [...targets].sort(
+    (a, b) => a.box.x + a.box.w / 2 - (b.box.x + b.box.w / 2),
+  );
+  const cx = from.x + from.w / 2;
+  const yExit = downward ? from.y + from.h : from.y;
+  const busY = downward
+    ? from.y + from.h + PEDIGREE_LAYER_GAP / 2
+    : from.y - PEDIGREE_LAYER_GAP / 2;
+
+  const relatedAll = [from.key, ...sorted.map((t) => t.edge.to)];
+  const xs = sorted.map((t) => t.box.x + t.box.w / 2);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+
+  const paths: PedigreeEdgePath[] = [];
+
+  // Shared trunk: leave source, then horizontal span covering all branches.
+  // Style: dotted only if every branch is a skip; otherwise solid.
+  const trunkSkip = sorted.every((t) => t.skipsLayers);
+  paths.push({
+    id: `${idPrefix}-trunk`,
+    from: from.key,
+    to: sorted[0].edge.to,
+    d: `M ${cx} ${yExit} L ${cx} ${busY} L ${minX} ${busY} L ${maxX} ${busY}`,
+    skipsLayers: trunkSkip,
+    showArrow: false,
+    related: relatedAll,
+  });
+
+  for (const t of sorted) {
+    const tx = t.box.x + t.box.w / 2;
+    const ty = downward ? t.box.y : t.box.y + t.box.h;
+    paths.push({
+      id: `${idPrefix}-to-${t.edge.to}`,
+      from: from.key,
+      to: t.edge.to,
+      d: `M ${tx} ${busY} L ${tx} ${ty}`,
+      skipsLayers: t.skipsLayers,
+      showArrow: t.skipsLayers,
+      related: [from.key, t.edge.to],
+    });
   }
-  return to.layerIndex >= from.layerIndex
-    ? `skip-lr-right-${from.layerIndex}`
-    : `skip-lr-left-${from.layerIndex}`;
+
+  return paths;
+}
+
+function bundlePathsLr(
+  from: PedigreeNodeBox,
+  targets: BundleTarget[],
+  rightward: boolean,
+  idPrefix: string,
+): PedigreeEdgePath[] {
+  if (targets.length === 0) return [];
+
+  const sorted = [...targets].sort(
+    (a, b) => a.box.y + a.box.h / 2 - (b.box.y + b.box.h / 2),
+  );
+  const cy = from.y + from.h / 2;
+  const xExit = rightward ? from.x + from.w : from.x;
+  const busX = rightward
+    ? from.x + from.w + PEDIGREE_LAYER_GAP / 2
+    : from.x - PEDIGREE_LAYER_GAP / 2;
+
+  const relatedAll = [from.key, ...sorted.map((t) => t.edge.to)];
+  const ys = sorted.map((t) => t.box.y + t.box.h / 2);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+
+  const paths: PedigreeEdgePath[] = [];
+  const trunkSkip = sorted.every((t) => t.skipsLayers);
+
+  paths.push({
+    id: `${idPrefix}-trunk`,
+    from: from.key,
+    to: sorted[0].edge.to,
+    d: `M ${xExit} ${cy} L ${busX} ${cy} L ${busX} ${minY} L ${busX} ${maxY}`,
+    skipsLayers: trunkSkip,
+    showArrow: false,
+    related: relatedAll,
+  });
+
+  for (const t of sorted) {
+    const ty = t.box.y + t.box.h / 2;
+    const tx = rightward ? t.box.x : t.box.x + t.box.w;
+    paths.push({
+      id: `${idPrefix}-to-${t.edge.to}`,
+      from: from.key,
+      to: t.edge.to,
+      d: `M ${busX} ${ty} L ${tx} ${ty}`,
+      skipsLayers: t.skipsLayers,
+      showArrow: t.skipsLayers,
+      related: [from.key, t.edge.to],
+    });
+  }
+
+  return paths;
 }
 
 export function buildPedigreeGeometry(
@@ -323,125 +308,60 @@ export function buildPedigreeGeometry(
     (e) => nodes.has(e.from) && nodes.has(e.to),
   );
 
-  const outByNode = new Map<string, LineageEdge[]>();
-  const inByNode = new Map<string, LineageEdge[]>();
-  const byBand = new Map<string, LineageEdge[]>();
-
+  const bySource = new Map<string, LineageEdge[]>();
   for (const edge of drawable) {
-    const from = nodes.get(edge.from)!;
-    const to = nodes.get(edge.to)!;
-    const outs = outByNode.get(edge.from) ?? [];
-    outs.push(edge);
-    outByNode.set(edge.from, outs);
-    const ins = inByNode.get(edge.to) ?? [];
-    ins.push(edge);
-    inByNode.set(edge.to, ins);
-    const skips = Math.abs(to.layerIndex - from.layerIndex) > 1;
-    const band = skips
-      ? skipLaneBandKey(from, to, orientation)
-      : layerBandKey(from.layerIndex, to.layerIndex);
-    const list = byBand.get(band) ?? [];
+    const list = bySource.get(edge.from) ?? [];
     list.push(edge);
-    byBand.set(band, list);
-  }
-
-  // Stable port order: sort by peer position so wires fan logically.
-  for (const [key, edges] of outByNode) {
-    edges.sort((a, b) => {
-      const ta = nodes.get(a.to)!;
-      const tb = nodes.get(b.to)!;
-      return orientation === "tb" ? ta.x - tb.x : ta.y - tb.y;
-    });
-    outByNode.set(key, edges);
-  }
-  for (const [key, edges] of inByNode) {
-    edges.sort((a, b) => {
-      const fa = nodes.get(a.from)!;
-      const fb = nodes.get(b.from)!;
-      return orientation === "tb" ? fa.x - fb.x : fa.y - fb.y;
-    });
-    inByNode.set(key, edges);
-  }
-  for (const [band, edges] of byBand) {
-    edges.sort((a, b) => {
-      const fa = nodes.get(a.from)!;
-      const fb = nodes.get(b.from)!;
-      const primary =
-        orientation === "tb" ? fa.x - fb.x || fa.y - fb.y : fa.y - fb.y || fa.x - fb.x;
-      if (primary !== 0) return primary;
-      const ta = nodes.get(a.to)!;
-      const tb = nodes.get(b.to)!;
-      return orientation === "tb" ? ta.x - tb.x : ta.y - tb.y;
-    });
-    byBand.set(band, edges);
+    bySource.set(edge.from, list);
   }
 
   const edgePaths: PedigreeEdgePath[] = [];
-  for (const edge of drawable) {
-    const from = nodes.get(edge.from)!;
-    const to = nodes.get(edge.to)!;
-    const outs = outByNode.get(edge.from)!;
-    const ins = inByNode.get(edge.to)!;
-    const skipsLayers = Math.abs(to.layerIndex - from.layerIndex) > 1;
-    const band = byBand.get(
-      skipsLayers
-        ? skipLaneBandKey(from, to, orientation)
-        : layerBandKey(from.layerIndex, to.layerIndex),
-    )!;
-    const outIndex = outs.indexOf(edge);
-    const inIndex = ins.indexOf(edge);
-    const laneIndex = band.indexOf(edge);
 
-    const d =
-      from.layerIndex === to.layerIndex
-        ? orientation === "tb"
-          ? peerPathTb(from, to)
-          : peerPathLr(from, to)
-        : skipsLayers
-          ? orientation === "tb"
-            ? skipBusPathTb(
-                from,
-                to,
-                outIndex,
-                outs.length,
-                inIndex,
-                ins.length,
-                laneIndex,
-                band.length,
-              )
-            : skipBusPathLr(
-                from,
-                to,
-                outIndex,
-                outs.length,
-                inIndex,
-                ins.length,
-                laneIndex,
-                band.length,
-              )
-          : orientation === "tb"
-            ? busPathTb(
-                from,
-                to,
-                outIndex,
-                outs.length,
-                inIndex,
-                ins.length,
-                laneIndex,
-                band.length,
-              )
-            : busPathLr(
-                from,
-                to,
-                outIndex,
-                outs.length,
-                inIndex,
-                ins.length,
-                laneIndex,
-                band.length,
-              );
+  for (const [fromKey, edges] of bySource) {
+    const from = nodes.get(fromKey)!;
+    const peers: BundleTarget[] = [];
+    const forward: BundleTarget[] = [];
+    const backward: BundleTarget[] = [];
 
-    edgePaths.push({ from: edge.from, to: edge.to, d, skipsLayers });
+    for (const edge of edges) {
+      const box = nodes.get(edge.to)!;
+      const skipsLayers = Math.abs(box.layerIndex - from.layerIndex) > 1;
+      const target: BundleTarget = { edge, box, skipsLayers };
+      if (box.layerIndex === from.layerIndex) {
+        peers.push(target);
+      } else if (box.layerIndex > from.layerIndex) {
+        forward.push(target);
+      } else {
+        backward.push(target);
+      }
+    }
+
+    for (const t of peers) {
+      edgePaths.push({
+        id: `peer-${fromKey}-${t.edge.to}`,
+        from: fromKey,
+        to: t.edge.to,
+        d:
+          orientation === "tb"
+            ? peerPathTb(from, t.box)
+            : peerPathLr(from, t.box),
+        skipsLayers: false,
+        showArrow: false,
+        related: [fromKey, t.edge.to],
+      });
+    }
+
+    if (orientation === "tb") {
+      edgePaths.push(
+        ...bundlePathsTb(from, forward, true, `tb-fwd-${fromKey}`),
+        ...bundlePathsTb(from, backward, false, `tb-back-${fromKey}`),
+      );
+    } else {
+      edgePaths.push(
+        ...bundlePathsLr(from, forward, true, `lr-fwd-${fromKey}`),
+        ...bundlePathsLr(from, backward, false, `lr-back-${fromKey}`),
+      );
+    }
   }
 
   return {
