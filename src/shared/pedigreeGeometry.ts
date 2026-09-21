@@ -127,6 +127,39 @@ interface BundleTarget {
   skipsLayers: boolean;
 }
 
+/** Offset between solid and skip bus lanes when both exist in one layer gap. */
+const BUS_LANE_OFFSET = 8;
+
+function bundleGroupPathsTb(
+  from: PedigreeNodeBox,
+  group: BundleTarget[],
+  busY: number,
+  downward: boolean,
+  idPrefix: string,
+): PedigreeEdgePath[] {
+  const sorted = [...group].sort(
+    (a, b) => a.box.x + a.box.w / 2 - (b.box.x + b.box.w / 2),
+  );
+  const cx = from.x + from.w / 2;
+  const yExit = downward ? from.y + from.h : from.y;
+
+  // One full stem-bus-drop path per target so highlighting a single edge never
+  // lights up bus segments that lead to other targets.
+  return sorted.map((t) => {
+    const tx = t.box.x + t.box.w / 2;
+    const ty = downward ? t.box.y : t.box.y + t.box.h;
+    return {
+      id: `${idPrefix}-to-${t.edge.to}`,
+      from: from.key,
+      to: t.edge.to,
+      d: `M ${cx} ${yExit} L ${cx} ${busY} L ${tx} ${busY} L ${tx} ${ty}`,
+      skipsLayers: t.skipsLayers,
+      showArrow: t.skipsLayers,
+      related: [from.key, t.edge.to],
+    };
+  });
+}
+
 function bundlePathsTb(
   from: PedigreeNodeBox,
   targets: BundleTarget[],
@@ -135,50 +168,66 @@ function bundlePathsTb(
 ): PedigreeEdgePath[] {
   if (targets.length === 0) return [];
 
-  const sorted = [...targets].sort(
-    (a, b) => a.box.x + a.box.w / 2 - (b.box.x + b.box.w / 2),
-  );
-  const cx = from.x + from.w / 2;
-  const yExit = downward ? from.y + from.h : from.y;
-  const busY = downward
+  const solid = targets.filter((t) => !t.skipsLayers);
+  const skip = targets.filter((t) => t.skipsLayers);
+  const centerBusY = downward
     ? from.y + from.h + PEDIGREE_LAYER_GAP / 2
     : from.y - PEDIGREE_LAYER_GAP / 2;
-
-  const relatedAll = [from.key, ...sorted.map((t) => t.edge.to)];
-  const xs = sorted.map((t) => t.box.x + t.box.w / 2);
-  const minX = Math.min(...xs);
-  const maxX = Math.max(...xs);
+  const stagger = solid.length > 0 && skip.length > 0;
 
   const paths: PedigreeEdgePath[] = [];
 
-  // Shared trunk: leave source, then horizontal span covering all branches.
-  // Style: dotted only if every branch is a skip; otherwise solid.
-  const trunkSkip = sorted.every((t) => t.skipsLayers);
-  paths.push({
-    id: `${idPrefix}-trunk`,
-    from: from.key,
-    to: sorted[0].edge.to,
-    d: `M ${cx} ${yExit} L ${cx} ${busY} L ${minX} ${busY} L ${maxX} ${busY}`,
-    skipsLayers: trunkSkip,
-    showArrow: false,
-    related: relatedAll,
-  });
+  if (solid.length > 0) {
+    const busY = stagger
+      ? downward
+        ? centerBusY - BUS_LANE_OFFSET
+        : centerBusY + BUS_LANE_OFFSET
+      : centerBusY;
+    paths.push(
+      ...bundleGroupPathsTb(from, solid, busY, downward, `${idPrefix}-solid`),
+    );
+  }
 
-  for (const t of sorted) {
-    const tx = t.box.x + t.box.w / 2;
-    const ty = downward ? t.box.y : t.box.y + t.box.h;
-    paths.push({
-      id: `${idPrefix}-to-${t.edge.to}`,
-      from: from.key,
-      to: t.edge.to,
-      d: `M ${tx} ${busY} L ${tx} ${ty}`,
-      skipsLayers: t.skipsLayers,
-      showArrow: t.skipsLayers,
-      related: [from.key, t.edge.to],
-    });
+  if (skip.length > 0) {
+    const busY = stagger
+      ? downward
+        ? centerBusY + BUS_LANE_OFFSET
+        : centerBusY - BUS_LANE_OFFSET
+      : centerBusY;
+    paths.push(
+      ...bundleGroupPathsTb(from, skip, busY, downward, `${idPrefix}-skip`),
+    );
   }
 
   return paths;
+}
+
+function bundleGroupPathsLr(
+  from: PedigreeNodeBox,
+  group: BundleTarget[],
+  busX: number,
+  rightward: boolean,
+  idPrefix: string,
+): PedigreeEdgePath[] {
+  const sorted = [...group].sort(
+    (a, b) => a.box.y + a.box.h / 2 - (b.box.y + b.box.h / 2),
+  );
+  const cy = from.y + from.h / 2;
+  const xExit = rightward ? from.x + from.w : from.x;
+
+  return sorted.map((t) => {
+    const ty = t.box.y + t.box.h / 2;
+    const tx = rightward ? t.box.x : t.box.x + t.box.w;
+    return {
+      id: `${idPrefix}-to-${t.edge.to}`,
+      from: from.key,
+      to: t.edge.to,
+      d: `M ${xExit} ${cy} L ${busX} ${cy} L ${busX} ${ty} L ${tx} ${ty}`,
+      skipsLayers: t.skipsLayers,
+      showArrow: t.skipsLayers,
+      related: [from.key, t.edge.to],
+    };
+  });
 }
 
 function bundlePathsLr(
@@ -189,45 +238,35 @@ function bundlePathsLr(
 ): PedigreeEdgePath[] {
   if (targets.length === 0) return [];
 
-  const sorted = [...targets].sort(
-    (a, b) => a.box.y + a.box.h / 2 - (b.box.y + b.box.h / 2),
-  );
-  const cy = from.y + from.h / 2;
-  const xExit = rightward ? from.x + from.w : from.x;
-  const busX = rightward
+  const solid = targets.filter((t) => !t.skipsLayers);
+  const skip = targets.filter((t) => t.skipsLayers);
+  const centerBusX = rightward
     ? from.x + from.w + PEDIGREE_LAYER_GAP / 2
     : from.x - PEDIGREE_LAYER_GAP / 2;
-
-  const relatedAll = [from.key, ...sorted.map((t) => t.edge.to)];
-  const ys = sorted.map((t) => t.box.y + t.box.h / 2);
-  const minY = Math.min(...ys);
-  const maxY = Math.max(...ys);
+  const stagger = solid.length > 0 && skip.length > 0;
 
   const paths: PedigreeEdgePath[] = [];
-  const trunkSkip = sorted.every((t) => t.skipsLayers);
 
-  paths.push({
-    id: `${idPrefix}-trunk`,
-    from: from.key,
-    to: sorted[0].edge.to,
-    d: `M ${xExit} ${cy} L ${busX} ${cy} L ${busX} ${minY} L ${busX} ${maxY}`,
-    skipsLayers: trunkSkip,
-    showArrow: false,
-    related: relatedAll,
-  });
+  if (solid.length > 0) {
+    const busX = stagger
+      ? rightward
+        ? centerBusX - BUS_LANE_OFFSET
+        : centerBusX + BUS_LANE_OFFSET
+      : centerBusX;
+    paths.push(
+      ...bundleGroupPathsLr(from, solid, busX, rightward, `${idPrefix}-solid`),
+    );
+  }
 
-  for (const t of sorted) {
-    const ty = t.box.y + t.box.h / 2;
-    const tx = rightward ? t.box.x : t.box.x + t.box.w;
-    paths.push({
-      id: `${idPrefix}-to-${t.edge.to}`,
-      from: from.key,
-      to: t.edge.to,
-      d: `M ${busX} ${ty} L ${tx} ${ty}`,
-      skipsLayers: t.skipsLayers,
-      showArrow: t.skipsLayers,
-      related: [from.key, t.edge.to],
-    });
+  if (skip.length > 0) {
+    const busX = stagger
+      ? rightward
+        ? centerBusX + BUS_LANE_OFFSET
+        : centerBusX - BUS_LANE_OFFSET
+      : centerBusX;
+    paths.push(
+      ...bundleGroupPathsLr(from, skip, busX, rightward, `${idPrefix}-skip`),
+    );
   }
 
   return paths;

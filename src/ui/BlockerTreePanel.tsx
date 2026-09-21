@@ -99,6 +99,10 @@ export function BlockerTreePanel({
     [onIssueKeyChange],
   );
 
+  const toggleSelectedKey = useCallback((key: string) => {
+    setSelectedKey((current) => (current === key ? null : key));
+  }, []);
+
   useEffect(() => {
     if (!issueKey) return;
     setInputKey(issueKey);
@@ -235,7 +239,7 @@ export function BlockerTreePanel({
                 node={displayTree}
                 depth={0}
                 selectedKey={selectedKey}
-                onSelect={setSelectedKey}
+                onSelect={toggleSelectedKey}
               />
             </div>
           </>
@@ -247,7 +251,7 @@ export function BlockerTreePanel({
             epicChildKeys={result.epicChildKeys}
             issuesByKey={result.issuesByKey}
             hideDone={hideDone}
-            onFocusKey={setSelectedKey}
+            onFocusKey={toggleSelectedKey}
           />
         )}
         {!loading && !displayTree && !error && view === "tree" && (
