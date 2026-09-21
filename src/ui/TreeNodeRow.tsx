@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { issueBrowseUrl } from "../shared/issueKey";
 import type { IssueSummary, TreeNode } from "../shared/types";
-import { BlockedIcon, ChevronIcon } from "./icons";
+import { ChevronIcon } from "./icons";
+import { PriorityLozenge } from "./PriorityLozenge";
 
 function typeClass(issueTypeName: string): string {
   const name = issueTypeName.toLowerCase();
@@ -51,71 +52,101 @@ function StatusLozenge({ issue }: { issue: IssueSummary }) {
 interface TreeNodeRowProps {
   node: TreeNode;
   depth: number;
+  selectedKey: string | null;
+  onSelect: (key: string) => void;
 }
 
-export function TreeNodeRow({ node, depth }: TreeNodeRowProps) {
+export function TreeNodeRow({
+  node,
+  depth,
+  selectedKey,
+  onSelect,
+}: TreeNodeRowProps) {
   const [expanded, setExpanded] = useState(depth < 2);
   const hasChildren = node.children.length > 0;
   const isPlaceholder = node.kind === "cycle" || node.kind === "truncated";
   const isDone = node.issue.statusCategory === "done";
-  const blockerCount = node.children.filter(
-    (child) => child.kind === "blocker",
-  ).length;
+  const isSelected = selectedKey === node.issue.key;
+
+  const rowClass = [
+    "jbt-row",
+    "jbt-tree-grid",
+    node.kind === "root" ? "jbt-row-root" : "",
+    node.issue.onCriticalPath ? "jbt-row-critical" : "",
+    isSelected ? "jbt-row-selected" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div className="jbt-node">
-      <div className={`jbt-row${node.kind === "root" ? " jbt-row-root" : ""}`}>
-        <button
-          type="button"
-          className="jbt-expander"
-          aria-label={expanded ? "Collapse" : "Expand"}
-          aria-expanded={expanded}
-          disabled={!hasChildren}
-          onClick={() => setExpanded((v) => !v)}
+      <div
+        className={rowClass}
+        role="row"
+        onClick={() => !isPlaceholder && onSelect(node.issue.key)}
+      >
+        <div
+          className="jbt-col-issue"
+          style={{ paddingLeft: depth > 0 ? depth * 12 : undefined }}
         >
-          <ChevronIcon />
-        </button>
+          <button
+            type="button"
+            className="jbt-expander"
+            aria-label={expanded ? "Collapse" : "Expand"}
+            aria-expanded={expanded}
+            disabled={!hasChildren}
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded((v) => !v);
+            }}
+          >
+            <ChevronIcon />
+          </button>
 
-        {isPlaceholder ? (
-          <>
+          {isPlaceholder ? (
             <span className="jbt-summary jbt-summary-muted">
               {node.issue.key} · {node.message}
             </span>
-          </>
-        ) : (
-          <>
-            <span
-              className={`jbt-type ${typeClass(node.issue.issueTypeName)}`}
-              title={node.issue.issueTypeName}
-            >
-              {typeInitial(node.issue.issueTypeName)}
-            </span>
-
-            <a
-              className={`jbt-key${isDone ? " jbt-key-done" : ""}`}
-              href={issueBrowseUrl(node.issue.key)}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {node.issue.key}
-            </a>
-
-            <span className="jbt-summary" title={node.issue.summary}>
-              {node.issue.summary}
-            </span>
-
-            {blockerCount > 0 && (
+          ) : (
+            <>
               <span
-                className="jbt-blocked-flag"
-                title={`Blocked by ${blockerCount} issue(s)`}
+                className={`jbt-type ${typeClass(node.issue.issueTypeName)}`}
+                title={node.issue.issueTypeName}
               >
-                <BlockedIcon />
-                {blockerCount}
+                {typeInitial(node.issue.issueTypeName)}
               </span>
-            )}
 
-            <StatusLozenge issue={node.issue} />
-            <Avatar assignee={node.issue.assigneeDisplayName} />
+              <a
+                className={`jbt-key${isDone ? " jbt-key-done" : ""}`}
+                href={issueBrowseUrl(node.issue.key)}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {node.issue.key}
+              </a>
+
+              <span className="jbt-summary" title={node.issue.summary}>
+                {node.issue.summary}
+              </span>
+            </>
+          )}
+        </div>
+
+        {!isPlaceholder && (
+          <>
+            <div className="jbt-col-leverage" title="Leverage (impact × priority weight)">
+              {node.issue.leverage}
+            </div>
+            <div className="jbt-col-priority">
+              <PriorityLozenge issue={node.issue} />
+            </div>
+            <div className="jbt-col-status">
+              <StatusLozenge issue={node.issue} />
+            </div>
+            <div className="jbt-col-assignee">
+              <Avatar assignee={node.issue.assigneeDisplayName} />
+            </div>
           </>
         )}
       </div>
@@ -127,6 +158,8 @@ export function TreeNodeRow({ node, depth }: TreeNodeRowProps) {
               key={`${node.issue.key}-${child.kind}-${child.issue.key}`}
               node={child}
               depth={depth + 1}
+              selectedKey={selectedKey}
+              onSelect={onSelect}
             />
           ))}
         </div>

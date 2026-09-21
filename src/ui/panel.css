@@ -30,6 +30,7 @@
 
   --jbt-skeleton-a: #f1f2f4;
   --jbt-skeleton-b: #e9eaee;
+  --jbt-critical-accent: #ae2e24;
 }
 
 /* Atlassian dark palette, mirrors Jira's own dark tokens. */
@@ -64,6 +65,7 @@
 
   --jbt-skeleton-a: #22272b;
   --jbt-skeleton-b: #2c333a;
+  --jbt-critical-accent: #fd9891;
 }
 
 .jbt-root {
@@ -92,7 +94,7 @@
   pointer-events: auto;
   display: flex;
   flex-direction: column;
-  width: var(--jbt-drawer-width, 460px);
+  width: var(--jbt-drawer-width, 520px);
   max-width: 100vw;
   height: 100vh;
   background: var(--jbt-bg);
@@ -246,6 +248,36 @@
   cursor: pointer;
 }
 
+.jbt-view-toggle {
+  display: inline-flex;
+  flex: none;
+  border: 1px solid var(--jbt-border);
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--jbt-bg);
+}
+
+.jbt-view-toggle button {
+  border: none;
+  background: transparent;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--jbt-subtle);
+  cursor: pointer;
+}
+
+.jbt-view-toggle button:hover {
+  background: var(--jbt-hover);
+  color: var(--jbt-text);
+}
+
+.jbt-view-toggle-active {
+  background: var(--jbt-bg-selected) !important;
+  color: var(--jbt-text) !important;
+  font-weight: 600;
+}
+
 /* ---------- messages ---------- */
 
 .jbt-banner {
@@ -278,12 +310,91 @@
   font-size: 13px;
 }
 
+/* ---------- main / tree grid ---------- */
+
+.jbt-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.jbt-tree-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 52px 76px 92px 40px;
+  align-items: center;
+  column-gap: 6px;
+}
+
+.jbt-tree-header {
+  flex: none;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--jbt-border);
+  background: var(--jbt-bg-sunken);
+}
+
+.jbt-tree-header-cell {
+  border: none;
+  background: transparent;
+  padding: 4px 2px;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--jbt-subtle);
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.jbt-tree-header-cell:hover {
+  color: var(--jbt-text);
+}
+
+.jbt-tree-header-active {
+  color: var(--jbt-text);
+}
+
+.jbt-col-leverage,
+.jbt-col-priority,
+.jbt-col-status,
+.jbt-col-assignee {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.jbt-col-leverage {
+  justify-content: flex-end;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--jbt-subtle);
+}
+
+.jbt-col-assignee {
+  justify-content: center;
+}
+
+.jbt-col-issue {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
 /* ---------- tree ---------- */
 
 .jbt-tree {
   flex: 1;
   overflow: auto;
-  padding: 8px 8px 24px;
+  padding: 4px 8px 24px;
 }
 
 .jbt-node {
@@ -298,12 +409,10 @@
 }
 
 .jbt-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
   min-height: 32px;
-  padding: 3px 8px 3px 0;
+  padding: 3px 4px;
   border-radius: 3px;
+  cursor: pointer;
 }
 
 .jbt-row:hover {
@@ -313,6 +422,21 @@
 .jbt-row-root {
   background: var(--jbt-bg-selected);
   font-weight: 500;
+}
+
+.jbt-row-critical {
+  box-shadow: inset 3px 0 0 var(--jbt-critical-accent);
+  background: rgba(174, 46, 36, 0.06);
+}
+
+.jbt-row-selected {
+  background: var(--jbt-bg-selected);
+  outline: 1px solid var(--jbt-border);
+  outline-offset: -1px;
+}
+
+.jbt-root.jbt-theme-dark .jbt-row-critical {
+  background: rgba(253, 152, 145, 0.08);
 }
 
 .jbt-expander {
@@ -447,23 +571,62 @@
   color: var(--jbt-loz-unknown-fg);
 }
 
-.jbt-blocked-flag {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 6px;
-  border-radius: 3px;
-  background: var(--jbt-danger-bg);
-  color: var(--jbt-danger);
+.jbt-priority {
+  max-width: 72px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
   font-size: 10px;
-  font-weight: 700;
-  white-space: nowrap;
 }
 
-.jbt-blocked-flag svg {
-  width: 10px;
-  height: 10px;
+.jbt-priority-highest {
+  background: #ffeceb;
+  color: #ae2e24;
+}
+
+.jbt-priority-high {
+  background: #fff7d6;
+  color: #7f5f01;
+}
+
+.jbt-priority-medium {
+  background: #deebff;
+  color: #0747a6;
+}
+
+.jbt-priority-low {
+  background: #f1f2f4;
+  color: #44546f;
+}
+
+.jbt-priority-lowest {
+  background: #f1f2f4;
+  color: #626f86;
+}
+
+.jbt-root.jbt-theme-dark .jbt-priority-highest {
+  background: #42221f;
+  color: #fd9891;
+}
+
+.jbt-root.jbt-theme-dark .jbt-priority-high {
+  background: #3d2e00;
+  color: #f5cd47;
+}
+
+.jbt-root.jbt-theme-dark .jbt-priority-medium {
+  background: #092957;
+  color: #85b8ff;
+}
+
+.jbt-root.jbt-theme-dark .jbt-priority-low {
+  background: #2c333a;
+  color: #9fadbc;
+}
+
+.jbt-root.jbt-theme-dark .jbt-priority-lowest {
+  background: #282e33;
+  color: #9fadbc;
 }
 
 .jbt-avatar {
@@ -485,6 +648,138 @@
   background: transparent;
   border: 1px dashed var(--jbt-border);
   color: var(--jbt-subtle);
+}
+
+/* ---------- lineage view ---------- */
+
+.jbt-lineage {
+  flex: 1;
+  overflow: auto;
+  padding: 12px 16px 24px;
+}
+
+.jbt-lineage-section {
+  margin: 0;
+}
+
+.jbt-lineage-heading {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--jbt-subtle);
+}
+
+.jbt-lineage-empty {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--jbt-subtle);
+}
+
+.jbt-lineage-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.jbt-lineage-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--jbt-border);
+  border-radius: 4px;
+  background: var(--jbt-bg);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.jbt-lineage-card:hover {
+  background: var(--jbt-bg-sunken);
+}
+
+.jbt-lineage-card-missing {
+  border-style: dashed;
+}
+
+.jbt-lineage-summary {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.jbt-lineage-card-meta,
+.jbt-lineage-focus-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.jbt-lineage-assignee {
+  font-size: 11px;
+  color: var(--jbt-subtle);
+}
+
+.jbt-lineage-muted {
+  font-size: 11px;
+  color: var(--jbt-subtle);
+  font-style: italic;
+}
+
+.jbt-lineage-connector {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.jbt-lineage-connector-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--jbt-subtle);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--jbt-bg-sunken);
+}
+
+.jbt-lineage-focus-card {
+  padding: 12px;
+  border: 1px solid var(--jbt-border);
+  border-radius: 4px;
+  background: var(--jbt-bg-selected);
+}
+
+.jbt-lineage-focus-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.jbt-lineage-leverage {
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--jbt-subtle);
+}
+
+.jbt-lineage-focus-summary {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 /* ---------- skeleton ---------- */

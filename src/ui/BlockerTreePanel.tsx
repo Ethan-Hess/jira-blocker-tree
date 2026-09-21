@@ -2,10 +2,20 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getActiveIssueKey, requestBuildTree } from "../shared/messaging";
 import { issueKeyFromUrl } from "../shared/issueKey";
 import type { BuildTreeResult, TreeNode } from "../shared/types";
+import { LineageView } from "./LineageView";
+import { TreeColumnHeader } from "./TreeColumnHeader";
 import { TreeNodeRow } from "./TreeNodeRow";
+import {
+  DEFAULT_TREE_SORT,
+  sortTree,
+  toggleTreeSort,
+  type TreeSortState,
+} from "./sortTree";
 import { CloseIcon, RefreshIcon } from "./icons";
 import { useColorMode } from "./useColorMode";
 import "./panel.css";
+
+type PanelView = "tree" | "lineage";
 
 function filterTree(node: TreeNode, hideDone: boolean): TreeNode | null {
   if (hideDone && node.issue.statusCategory === "done" && node.kind !== "root") {
@@ -52,6 +62,9 @@ export function BlockerTreePanel({
 }: BlockerTreePanelProps) {
   const [inputKey, setInputKey] = useState(issueKey ?? "");
   const [hideDone, setHideDone] = useState(false);
+  const [view, setView] = useState<PanelView>("tree");
+  const [treeSort, setTreeSort] = useState<TreeSortState>(DEFAULT_TREE_SORT);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<BuildTreeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +84,7 @@ export function BlockerTreePanel({
         setResult(data);
         setError(data.error ?? null);
         loadedKeyRef.current = trimmed;
+        setSelectedKey(trimmed);
         onIssueKeyChange?.(trimmed);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load tree");
@@ -89,13 +103,16 @@ export function BlockerTreePanel({
     void load(issueKey);
   }, [issueKey, load]);
 
-  const displayTree = useMemo(
-    () => (result?.tree ? filterTree(result.tree, hideDone) : null),
-    [result?.tree, hideDone],
-  );
+  const displayTree = useMemo(() => {
+    if (!result?.tree) return null;
+    const filtered = filterTree(result.tree, hideDone);
+    if (!filtered) return null;
+    return sortTree(filtered, treeSort);
+  }, [result?.tree, hideDone, treeSort]);
 
   const rootKey = result?.rootKey ?? issueKey;
   const visibleCount = displayTree ? countNodes(displayTree) : 0;
+  const lineageFocusKey = selectedKey ?? rootKey ?? "";
 
   const body = (
     <div className={`jbt-root jbt-embedded${themeClass}`}>
@@ -153,6 +170,26 @@ export function BlockerTreePanel({
           />
           Hide done
         </label>
+        <div className="jbt-view-toggle" role="tablist" aria-label="View mode">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === "tree"}
+            className={view === "tree" ? "jbt-view-toggle-active" : undefined}
+            onClick={() => setView("tree")}
+          >
+            Tree
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === "lineage"}
+            className={view === "lineage" ? "jbt-view-toggle-active" : undefined}
+            onClick={() => setView("lineage")}
+          >
+            Lineage
+          </button>
+        </div>
       </div>
 
       {error && <div className="jbt-banner jbt-banner-error">{error}</div>}
@@ -167,13 +204,38 @@ export function BlockerTreePanel({
         <div className="jbt-meta">
           {result.nodeCount} issue{result.nodeCount === 1 ? "" : "s"} loaded ·{" "}
           {visibleCount} shown
+          {selectedKey && view === "lineage" ? ` · focus ${selectedKey}` : ""}
         </div>
       )}
 
-      <div className="jbt-tree">
+      <div className="jbt-main">
         {loading && <Skeleton />}
-        {!loading && displayTree && <TreeNodeRow node={displayTree} depth={0} />}
-        {!loading && !displayTree && !error && (
+        {!loading && view === "tree" && displayTree && (
+          <>
+            <TreeColumnHeader
+              sort={treeSort}
+              onSort={(column) =>
+                setTreeSort((current) => toggleTreeSort(current, column))
+              }
+            />
+            <div className="jbt-tree">
+              <TreeNodeRow
+                node={displayTree}
+                depth={0}
+                selectedKey={selectedKey}
+                onSelect={setSelectedKey}
+              />
+            </div>
+          </>
+        )}
+        {!loading && view === "lineage" && result && lineageFocusKey && (
+          <LineageView
+            focusKey={lineageFocusKey}
+            issuesByKey={result.issuesByKey}
+            onFocusKey={setSelectedKey}
+          />
+        )}
+        {!loading && !displayTree && !error && view === "tree" && (
           <p className="jbt-empty">
             {issueKey
               ? "Nothing to show for this issue."

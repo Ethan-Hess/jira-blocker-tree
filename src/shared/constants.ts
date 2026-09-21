@@ -12,4 +12,6 @@ export const ISSUE_FIELDS = [
   "issuetype",
   "issuelinks",
   "parent",
+  "priority",
+  "updated",
 ].join(",");

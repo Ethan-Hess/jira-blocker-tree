@@ -16,6 +16,11 @@ export interface JiraIssueType {
   name: string;
 }
 
+export interface JiraPriority {
+  id?: string;
+  name?: string;
+}
+
 export interface JiraLinkedIssueFields {
   summary: string;
   status?: { name: string };
@@ -33,6 +38,8 @@ export interface JiraIssueFields {
   assignee?: JiraUser | null;
   issuetype: JiraIssueType;
   issuelinks?: JiraIssueLink[];
+  priority?: JiraPriority | null;
+  updated?: string;
 }
 
 export interface JiraIssue {

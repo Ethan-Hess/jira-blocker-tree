@@ -7,7 +7,17 @@ export interface IssueSummary {
   statusCategory: StatusCategoryKey;
   assigneeDisplayName: string | null;
   issueTypeName: string;
-  blocksCount: number;
+  priorityName: string | null;
+  priorityId: string | null;
+  updated: string | null;
+  directBlocksCount: number;
+  impactCount: number;
+  leverage: number;
+  priorityRank: number;
+  blockerKeys: string[];
+  blockedKeys: string[];
+  isReady: boolean;
+  onCriticalPath: boolean;
 }
 
 export type TreeNodeKind = "root" | "epicChild" | "blocker" | "cycle" | "truncated";
@@ -19,9 +29,14 @@ export interface TreeNode {
   message?: string;
 }
 
+export interface ReadyItem extends IssueSummary {}
+
 export interface BuildTreeResult {
   rootKey: string;
   tree: TreeNode | null;
+  ready: ReadyItem[];
+  criticalPath: string[];
+  issuesByKey: Record<string, IssueSummary>;
   error?: string;
   nodeCount: number;
   truncated: boolean;

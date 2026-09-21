@@ -21,6 +21,10 @@ function isBlocksLink(link: JiraIssueLink): boolean {
   return link.type?.name === BLOCKS_LINK_TYPE;
 }
 
+export function isIssueDone(issue: JiraIssue): boolean {
+  return statusCategoryFromJira(issue.fields.status.statusCategory) === "done";
+}
+
 export function inwardBlockerKeys(issue: JiraIssue): string[] {
   const links = issue.fields.issuelinks ?? [];
   return links
@@ -35,7 +39,21 @@ export function outwardBlockedKeys(issue: JiraIssue): string[] {
     .map((link) => link.outwardIssue!.key);
 }
 
-export function toIssueSummary(issue: JiraIssue): IssueSummary {
+const EMPTY_METRICS = {
+  directBlocksCount: 0,
+  impactCount: 0,
+  leverage: 0,
+  priorityRank: 99,
+  isReady: false,
+  onCriticalPath: false,
+};
+
+export function toIssueSummary(
+  issue: JiraIssue,
+  metrics: Partial<typeof EMPTY_METRICS> = {},
+): IssueSummary {
+  const blockedKeys = outwardBlockedKeys(issue);
+  const blockerKeys = inwardBlockerKeys(issue);
   return {
     key: issue.key,
     summary: issue.fields.summary,
@@ -43,6 +61,36 @@ export function toIssueSummary(issue: JiraIssue): IssueSummary {
     statusCategory: statusCategoryFromJira(issue.fields.status.statusCategory),
     assigneeDisplayName: issue.fields.assignee?.displayName ?? null,
     issueTypeName: issue.fields.issuetype.name,
-    blocksCount: outwardBlockedKeys(issue).length,
+    priorityName: issue.fields.priority?.name ?? null,
+    priorityId: issue.fields.priority?.id ?? null,
+    updated: issue.fields.updated ?? null,
+    directBlocksCount: metrics.directBlocksCount ?? blockedKeys.length,
+    impactCount: metrics.impactCount ?? 0,
+    leverage: metrics.leverage ?? 0,
+    priorityRank: metrics.priorityRank ?? 99,
+    blockerKeys,
+    blockedKeys,
+    isReady: metrics.isReady ?? false,
+    onCriticalPath: metrics.onCriticalPath ?? false,
+  };
+}
+
+export function placeholderIssueSummary(
+  key: string,
+  summary: string,
+): IssueSummary {
+  return {
+    key,
+    summary,
+    statusName: "",
+    statusCategory: "unknown",
+    assigneeDisplayName: null,
+    issueTypeName: "",
+    priorityName: null,
+    priorityId: null,
+    updated: null,
+    blockerKeys: [],
+    blockedKeys: [],
+    ...EMPTY_METRICS,
   };
 }

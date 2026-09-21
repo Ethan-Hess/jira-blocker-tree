@@ -85,8 +85,8 @@ const launcher = page.locator("#jbt-launcher-slot button");
 const launcherCount = await launcher.count();
 
 if (flag("open") && launcherCount > 0) {
-  const pressed = await launcher.first().getAttribute("aria-pressed");
-  if (pressed !== "true") {
+  const open = await launcher.first().getAttribute("data-jbt-open");
+  if (open !== "true") {
     await launcher.first().click();
   }
   await page.waitForTimeout(2500);
@@ -99,6 +99,8 @@ const diagnostics = await page.evaluate(() => {
   const rows = shadow?.querySelectorAll(".jbt-row") ?? [];
   const banner = shadow?.querySelector(".jbt-banner");
   const meta = shadow?.querySelector(".jbt-meta");
+  const treeHeader = shadow?.querySelector(".jbt-tree-header");
+  const viewToggle = shadow?.querySelector(".jbt-view-toggle");
   const slot = document.getElementById("jbt-launcher-slot");
 
   return {
@@ -106,6 +108,8 @@ const diagnostics = await page.evaluate(() => {
     shadowRootPresent: Boolean(shadow),
     drawerOpen: Boolean(drawer),
     rowCount: rows.length,
+    sortableTreeHeader: Boolean(treeHeader),
+    viewTogglePresent: Boolean(viewToggle),
     banner: banner?.textContent?.trim() ?? null,
     meta: meta?.textContent?.trim() ?? null,
     launcherSlotPresent: Boolean(slot),
@@ -129,6 +133,8 @@ console.log(`slot anchored after       : ${diagnostics.launcherParentTestId ?? "
 console.log(`panel host + shadow root  : ${diagnostics.panelHostPresent} / ${diagnostics.shadowRootPresent}`);
 console.log(`drawer open               : ${diagnostics.drawerOpen}`);
 console.log(`tree rows rendered        : ${diagnostics.rowCount}`);
+console.log(`sortable tree header      : ${diagnostics.sortableTreeHeader ? "yes" : "no"}`);
+console.log(`view toggle               : ${diagnostics.viewTogglePresent ? "yes" : "no"}`);
 if (diagnostics.meta) console.log(`meta                      : ${diagnostics.meta}`);
 if (diagnostics.banner) console.log(`banner                    : ${diagnostics.banner}`);
 
