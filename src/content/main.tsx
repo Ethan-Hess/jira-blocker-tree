@@ -6,7 +6,9 @@ import { TreeIcon } from "../ui/icons";
 import panelCss from "../ui/panel.css?inline";
 import {
   PANEL_HOST_ID,
+  buildLauncherButton,
   ensureLauncherSlot,
+  launcherButtonEl,
   observeHeader,
 } from "./mountPoints";
 import "./content.css";
@@ -68,21 +70,26 @@ function useIssueKeyFromPage(): string | null {
   return issueKey;
 }
 
-function LauncherButton() {
+/** Fallback button, used only when no Jira button is available to clone. */
+function FallbackLauncher() {
   const [open, setOpen] = useOpenState();
-
   return (
     <button
       type="button"
       className="jbt-launcher-button"
-      aria-pressed={open}
-      title="Show the blocking tree for this issue"
+      data-jbt-open={open}
+      title={open ? "Hide the blocking tree" : "Show the blocking tree"}
       onClick={() => setOpen(!open)}
     >
       <TreeIcon />
       Blockers
     </button>
   );
+}
+
+function syncLauncherState(button: HTMLButtonElement, open: boolean) {
+  button.dataset.jbtOpen = open ? "true" : "false";
+  button.title = open ? "Hide the blocking tree" : "Show the blocking tree";
 }
 
 function DrawerApp() {
@@ -130,19 +137,44 @@ function mountPanelHost() {
 }
 
 let launcherRoot: Root | null = null;
+let unsubscribeLauncher: (() => void) | null = null;
 
 function mountLauncher() {
   const slot = ensureLauncherSlot();
   if (!slot || slot.dataset.mounted === "1") return;
 
-  slot.dataset.mounted = "1";
-  launcherRoot?.unmount();
-  launcherRoot = createRoot(slot);
-  launcherRoot.render(
-    <StrictMode>
-      <LauncherButton />
-    </StrictMode>,
-  );
+  const root = buildLauncherButton("Blockers", () => {
+    openState.set(!openState.value);
+  });
+  const button = root ? launcherButtonEl(root) : null;
+
+  if (root && button) {
+    unsubscribeLauncher?.();
+    unsubscribeLauncher = null;
+    // Drop the fallback React tree before taking over the slot imperatively.
+    launcherRoot?.unmount();
+    launcherRoot = null;
+
+    slot.dataset.mounted = "1";
+    slot.replaceChildren(root);
+    syncLauncherState(button, openState.value);
+
+    const listener = (open: boolean) => syncLauncherState(button, open);
+    openState.listeners.add(listener);
+    unsubscribeLauncher = () => openState.listeners.delete(listener);
+    return;
+  }
+
+  // Jira's header buttons have not rendered yet; show the fallback and let the
+  // header observer retry so the cloned button can replace it.
+  if (!launcherRoot) {
+    launcherRoot = createRoot(slot);
+    launcherRoot.render(
+      <StrictMode>
+        <FallbackLauncher />
+      </StrictMode>,
+    );
+  }
 }
 
 function start() {

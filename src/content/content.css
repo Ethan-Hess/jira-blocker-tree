@@ -16,7 +16,28 @@ html.jbt-drawer-open body {
   margin-right: var(--jbt-drawer-width, 460px) !important;
 }
 
-/* Mirrors Jira's subtle header buttons (Automation, Open in coding tool). */
+/*
+ * The launcher is a clone of a neighbouring Jira button, so padding, radius
+ * and typography come from Jira itself. Only the icon size and the open state
+ * need styling, and both use Atlassian design tokens so they follow whichever
+ * colour mode Jira is in.
+ */
+.jbt-launcher-cloned svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.jbt-launcher-cloned[data-jbt-open="true"] {
+  background-color: var(--ds-background-selected, #e9f2ff);
+  color: var(--ds-text-selected, #0c66e4);
+}
+
+.jbt-launcher-cloned[data-jbt-open="true"]:hover {
+  background-color: var(--ds-background-selected-hovered, #cce0ff);
+}
+
+/* Fallback styling used only when no neighbouring button can be cloned. */
 .jbt-launcher-button {
   display: inline-flex;
   align-items: center;
@@ -39,7 +60,7 @@ html.jbt-drawer-open body {
   background: var(--ds-background-neutral-subtle-hovered, rgba(9, 30, 66, 0.06));
 }
 
-.jbt-launcher-button[aria-pressed="true"] {
+.jbt-launcher-button[data-jbt-open="true"] {
   background: var(--ds-background-selected, #e9f2ff);
   color: var(--ds-text-selected, #0c66e4);
 }

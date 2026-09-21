@@ -4,6 +4,7 @@ import { issueKeyFromUrl } from "../shared/issueKey";
 import type { BuildTreeResult, TreeNode } from "../shared/types";
 import { TreeNodeRow } from "./TreeNodeRow";
 import { CloseIcon, RefreshIcon } from "./icons";
+import { useColorMode } from "./useColorMode";
 import "./panel.css";
 
 function filterTree(node: TreeNode, hideDone: boolean): TreeNode | null {
@@ -55,6 +56,8 @@ export function BlockerTreePanel({
   const [result, setResult] = useState<BuildTreeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const loadedKeyRef = useRef<string | null>(null);
+  const colorMode = useColorMode();
+  const themeClass = colorMode === "dark" ? " jbt-theme-dark" : "";
 
   const load = useCallback(
     async (key: string, force = false) => {
@@ -95,7 +98,7 @@ export function BlockerTreePanel({
   const visibleCount = displayTree ? countNodes(displayTree) : 0;
 
   const body = (
-    <div className="jbt-root jbt-embedded">
+    <div className={`jbt-root jbt-embedded${themeClass}`}>
       <header className="jbt-header">
         <div className="jbt-header-text">
           <h1 className="jbt-title">Blocker tree</h1>
@@ -182,7 +185,7 @@ export function BlockerTreePanel({
   );
 
   if (variant === "drawer") {
-    return <div className="jbt-root jbt-drawer">{body}</div>;
+    return <div className={`jbt-root jbt-drawer${themeClass}`}>{body}</div>;
   }
   return body;
 }
