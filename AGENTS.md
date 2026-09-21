@@ -1,6 +1,6 @@
 # Jira Blocker Tree
 
-Personal Chrome MV3 extension for [Jira Cloud](https://your-site.atlassian.net). On an issue or epic page it shows a collapsible tree of epic children (`parentEpic`) plus inward **Blocks** links (`is blocked by`).
+Personal Chrome MV3 extension for a single Jira Cloud site (`JIRA_ORIGIN` in the gitignored `.env`, see `.env.example`). On an issue or epic page it shows a collapsible tree of epic children (`parentEpic`) plus inward **Blocks** links (`is blocked by`).
 
 ## Layout
 
@@ -13,12 +13,13 @@ Personal Chrome MV3 extension for [Jira Cloud](https://your-site.atlassian.net).
 
 ## Auth and site
 
-Uses the logged-in Jira browser session (`credentials: include`, `X-Atlassian-Token: no-check`). Do not add OAuth, PATs, or extra host permissions. Stay on `https://your-site.atlassian.net`.
+Uses the logged-in Jira browser session (`credentials: include`, `X-Atlassian-Token: no-check`). Do not add OAuth, PATs, or extra host permissions. Stay on the configured `JIRA_ORIGIN`.
 
 ## Commands
 
 ```bash
 npm install
+cp .env.example .env     # JIRA_ORIGIN, never commit the host
 npm run build            # typecheck + Vite
 npm run typecheck
 npm run dev              # Vite; auto-reloads the extension

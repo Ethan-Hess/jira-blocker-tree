@@ -1,3 +1,5 @@
+import { JIRA_ORIGIN } from "./constants";
+
 const ISSUE_KEY_PATTERN = /([A-Z][A-Z0-9]+-\d+)/;
 
 /** Extract Jira issue key from a browse URL path or hash. */
@@ -20,5 +22,5 @@ export function issueKeyFromUrl(url: string): string | null {
 }
 
 export function issueBrowseUrl(key: string): string {
-  return `https://your-site.atlassian.net/browse/${key}`;
+  return `${JIRA_ORIGIN}/browse/${key}`;
 }

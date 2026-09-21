@@ -12,7 +12,7 @@ If debug Chrome is not already running:
 1. `npm run dev` (Vite; keep running)
 2. `npm run chrome` (profile under `.devtools/chrome-profile`, CDP `127.0.0.1:9222`)
 
-The user must be logged into `https://your-site.atlassian.net` in that window. Do not use `--disable-extensions-except`.
+The user must be logged into the configured Jira site in that window. Do not use `--disable-extensions-except`.
 
 If the extension is missing after a Chrome restart, run `npm run chrome` again (CDP load does not persist). After a manual `npm run build`, `npm run reload` reinstalls `dist/`.
 

@@ -1,4 +1,4 @@
-export const JIRA_ORIGIN = "https://your-site.atlassian.net";
+export const JIRA_ORIGIN = __JIRA_ORIGIN__;
 
 export const BLOCKS_LINK_TYPE = "Blocks";
 

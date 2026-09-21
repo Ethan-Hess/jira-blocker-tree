@@ -14,6 +14,7 @@ import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright-core";
+import { jiraHost } from "./jiraOrigin.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = resolve(ROOT, ".devtools");
@@ -26,7 +27,7 @@ const value = (name) => {
   return hit ? hit.slice(name.length + 3) : null;
 };
 
-const JIRA_HOST = "your-site.atlassian.net";
+const JIRA_HOST = jiraHost();
 
 function truncate(text, max = 300) {
   const clean = String(text).replace(/\s+/g, " ").trim();

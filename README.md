@@ -1,6 +1,6 @@
 # Jira Blocker Tree (Chrome extension)
 
-Personal Chrome extension for [Jira Cloud](https://your-site.atlassian.net). On an issue or epic page, it builds a collapsible tree of:
+Personal Chrome extension for a single Jira Cloud site, set by `JIRA_ORIGIN` in `.env`. On an issue or epic page, it builds a collapsible tree of:
 
 - Issues linked to the epic (`parentEpic = KEY`)
 - Inward **Blocks** links (`is blocked by`), including cross-project blockers
@@ -11,15 +11,20 @@ Each row shows issue key, summary, status, assignee, and a badge when the issue 
 
 - Node.js 20+
 - Chrome (Manifest V3, side panel support recommended)
-- Logged-in session on `your-site.atlassian.net` in the same browser profile
+- Logged-in session on the configured Jira site in the same browser profile
 
 ## Setup
 
 ```bash
 cd jira-blocker-tree
 npm install
+cp .env.example .env   # set JIRA_ORIGIN to your Jira site
 npm run build
 ```
+
+`.env` is gitignored and is the only place the Jira host lives. The build injects it
+into the manifest (host permissions, content-script matches) and into `JIRA_ORIGIN`
+for REST calls and issue links. Builds and debug scripts fail fast if it is unset.
 
 Load unpacked in Chrome:
 
@@ -29,12 +34,12 @@ Load unpacked in Chrome:
 
 ## Usage
 
-1. Open any issue on `your-site.atlassian.net`
+1. Open any issue on the configured Jira site
 2. Click **Blockers** in the issue header action row (next to Automation and Open in coding tool) to open the drawer
 3. Or click the extension icon to open the **side panel** (tracks the active Jira tab when possible)
 4. Use **Refresh** after changing links, **Hide done** to filter completed work
 
-The walker uses LVT link type **Blocks** (inward: `is blocked by`, outward: `is blocking`). Depth and node caps prevent runaway graphs.
+The walker uses the link type **Blocks** (inward: `is blocked by`, outward: `is blocking`). Depth and node caps prevent runaway graphs.
 
 ## Performance
 

@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Project
 
-Personal Chrome MV3 extension for Jira Cloud (`your-site.atlassian.net`). It builds a collapsible blocking tree (epic children + inward Blocks links) on issue pages and in the side panel.
+Personal Chrome MV3 extension for a single Jira Cloud site (`JIRA_ORIGIN` in the gitignored `.env`). It builds a collapsible blocking tree (epic children + inward Blocks links) on issue pages and in the side panel.
 
 Keep changes small and in the existing layout: `src/shared/` for logic, `src/ui/` for React, `src/content/` for Jira DOM, `src/background/` for the service worker.
 
@@ -20,6 +20,7 @@ Keep changes small and in the existing layout: `src/shared/` for logic, `src/ui/
 ## Do not
 
 - Add OAuth, PATs, API tokens, or new Jira host permissions.
+- Hardcode the Jira host or issue keys anywhere in the repo; read `JIRA_ORIGIN` from `.env`.
 - Use `--disable-extensions-except` with `npm run chrome`.
 - Put panel styles in Jira's document CSS (except the small launcher in `content.css`).
 - Expand `ISSUE_FIELDS` without a reason; extra fields cost every search.
