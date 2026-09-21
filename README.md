@@ -29,7 +29,7 @@ Load unpacked in Chrome:
 
 ## Usage
 
-1. Open any Jira issue URL, for example `https://your-site.atlassian.net`
+1. Open any issue on `your-site.atlassian.net`
 2. Click **Blockers** in the issue header action row (next to Automation and Open in coding tool) to open the drawer
 3. Or click the extension icon to open the **side panel** (tracks the active Jira tab when possible)
 4. Use **Refresh** after changing links, **Hide done** to filter completed work
@@ -67,7 +67,7 @@ Inspect what the extension is doing at any time:
 npm run inspect                      # current Jira tab
 npm run inspect -- --reload          # reload the page first
 npm run inspect -- --open            # click Blockers and wait for the tree
-npm run inspect -- --url=https://your-site.atlassian.net
+npm run inspect -- --url=<issue-url>
 ```
 
 It reports whether the launcher and drawer mounted, how many rows rendered, any

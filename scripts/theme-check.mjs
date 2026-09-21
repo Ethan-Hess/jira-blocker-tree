@@ -16,17 +16,22 @@ import { chromium } from "playwright-core";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = resolve(ROOT, ".devtools");
 const PORT = process.env.CDP_PORT ?? "9222";
-const ISSUE =
-  process.argv[2] ?? "https://your-site.atlassian.net";
+const ISSUE = process.argv[2] ?? null;
 
 mkdirSync(OUT, { recursive: true });
 
 const browser = await chromium.connectOverCDP(`http://127.0.0.1:${PORT}`);
 const context = browser.contexts()[0];
 let page = context.pages().find((p) => p.url().includes("/browse/"));
-if (!page) page = await context.newPage();
-
-await page.goto(ISSUE, { waitUntil: "domcontentloaded" });
+if (ISSUE) {
+  if (!page) page = await context.newPage();
+  await page.goto(ISSUE, { waitUntil: "domcontentloaded" });
+} else if (!page) {
+  console.error(
+    "No issue tab open. Pass a browse URL or open an issue in the debug Chrome first.",
+  );
+  process.exit(1);
+}
 await page.waitForTimeout(6000);
 
 const setDrawer = async (open) => {

@@ -52,8 +52,13 @@ let page =
 
 const targetUrl = value("url");
 if (!page) {
+  if (!targetUrl) {
+    console.error(
+      "No Jira tab open. Pass --url=<issue-url> or open an issue in the debug Chrome first.",
+    );
+    process.exit(1);
+  }
   page = await context.newPage();
-  await page.goto(targetUrl ?? `https://${JIRA_HOST}/browse/ISSUE-KEY`);
 }
 
 const consoleLines = [];

@@ -15,8 +15,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PROFILE_DIR = resolve(ROOT, ".devtools/chrome-profile");
 const EXTENSION_DIR = resolve(ROOT, "dist");
 const PORT = process.env.CDP_PORT ?? "9222";
-const START_URL =
-  process.argv[2] ?? "https://your-site.atlassian.net";
+const START_URL = process.argv[2] ?? "https://your-site.atlassian.net";
 
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 

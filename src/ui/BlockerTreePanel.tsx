@@ -174,7 +174,7 @@ export function BlockerTreePanel({
             className="jbt-input"
             value={inputKey}
             onChange={(e) => setInputKey(e.target.value)}
-            placeholder="Issue key, e.g. ISSUE-KEY"
+            placeholder="Issue key"
             spellCheck={false}
           />
         </form>
