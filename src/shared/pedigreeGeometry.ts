@@ -8,7 +8,8 @@ export const PEDIGREE_CARD_H = 72;
 export const PEDIGREE_GAP = 12;
 export const PEDIGREE_LAYER_GAP = 56;
 export const PEDIGREE_PAD = 24;
-export const PEDIGREE_LABEL_STRIP = 28;
+/** Gutter for layer labels (TB: left of cards; LR: above cards). */
+export const PEDIGREE_LABEL_STRIP = 56;
 
 export interface PedigreeNodeBox {
   key: string;

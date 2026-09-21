@@ -756,8 +756,10 @@
 }
 
 .jbt-pedigree-tb .jbt-pedigree-layer-label {
-  width: 20px;
+  width: 48px;
   text-align: right;
+  box-sizing: border-box;
+  padding-right: 4px;
 }
 
 .jbt-pedigree-lr .jbt-pedigree-layer-label {
