@@ -53,7 +53,11 @@ function useIssueKeyFromPage(): string | null {
       setIssueKey(key);
       if (key) {
         chrome.runtime
-          .sendMessage({ type: "SET_ACTIVE_ISSUE", issueKey: key })
+          .sendMessage({
+            type: "SET_ACTIVE_ISSUE",
+            issueKey: key,
+            origin: window.location.origin,
+          })
           .catch(() => undefined);
       }
     };
@@ -95,6 +99,7 @@ function syncLauncherState(button: HTMLButtonElement, open: boolean) {
 function DrawerApp() {
   const issueKey = useIssueKeyFromPage();
   const [open, setOpen] = useOpenState();
+  const jiraOrigin = window.location.origin;
 
   useEffect(() => {
     document.documentElement.classList.toggle("jbt-drawer-open", open);
@@ -107,6 +112,7 @@ function DrawerApp() {
   return (
     <BlockerTreePanel
       issueKey={issueKey}
+      jiraOrigin={jiraOrigin}
       variant="drawer"
       onClose={() => setOpen(false)}
     />

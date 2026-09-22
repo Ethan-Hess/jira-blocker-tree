@@ -1,4 +1,5 @@
-import { ISSUE_FIELDS, JIRA_ORIGIN } from "../constants";
+import { ISSUE_FIELDS } from "../constants";
+import { isJiraCloudOrigin } from "../jiraOrigin";
 import type { JiraIssue, JiraSearchResponse } from "./types";
 
 const API_HEADERS: HeadersInit = {
@@ -10,8 +11,16 @@ const API_HEADERS: HeadersInit = {
 /** Jira rejects very large `key in (...)` clauses, so page the keys. */
 const KEY_BATCH_SIZE = 50;
 
-async function jiraFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${JIRA_ORIGIN}${path}`, {
+async function jiraFetch<T>(
+  origin: string,
+  path: string,
+  init?: RequestInit,
+): Promise<T> {
+  if (!isJiraCloudOrigin(origin)) {
+    throw new Error("Jira origin must be https://*.atlassian.net");
+  }
+
+  const response = await fetch(`${origin}${path}`, {
     ...init,
     credentials: "include",
     headers: {
@@ -30,13 +39,20 @@ async function jiraFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function fetchIssue(key: string): Promise<JiraIssue> {
+export async function fetchIssue(
+  origin: string,
+  key: string,
+): Promise<JiraIssue> {
   return jiraFetch<JiraIssue>(
+    origin,
     `/rest/api/3/issue/${encodeURIComponent(key)}?fields=${ISSUE_FIELDS}`,
   );
 }
 
-export async function searchIssuesByJql(jql: string): Promise<JiraIssue[]> {
+export async function searchIssuesByJql(
+  origin: string,
+  jql: string,
+): Promise<JiraIssue[]> {
   const issues: JiraIssue[] = [];
   let nextPageToken: string | undefined;
 
@@ -50,10 +66,14 @@ export async function searchIssuesByJql(jql: string): Promise<JiraIssue[]> {
       body.nextPageToken = nextPageToken;
     }
 
-    const page = await jiraFetch<JiraSearchResponse>("/rest/api/3/search/jql", {
-      method: "POST",
-      body: JSON.stringify(body),
-    });
+    const page = await jiraFetch<JiraSearchResponse>(
+      origin,
+      "/rest/api/3/search/jql",
+      {
+        method: "POST",
+        body: JSON.stringify(body),
+      },
+    );
 
     issues.push(...(page.issues ?? []));
     nextPageToken = page.isLast ? undefined : page.nextPageToken;
@@ -74,21 +94,30 @@ function chunk<T>(items: T[], size: number): T[][] {
  * Load many issues in as few round trips as possible. One JQL search per batch
  * of keys, batches run in parallel.
  */
-export async function fetchIssuesByKeys(keys: string[]): Promise<JiraIssue[]> {
+export async function fetchIssuesByKeys(
+  origin: string,
+  keys: string[],
+): Promise<JiraIssue[]> {
   if (keys.length === 0) return [];
 
   const batches = chunk(keys, KEY_BATCH_SIZE);
   const results = await Promise.all(
     batches.map((batch) => {
       const list = batch.map((key) => `"${key.replace(/"/g, '\\"')}"`).join(",");
-      return searchIssuesByJql(`key in (${list})`);
+      return searchIssuesByJql(origin, `key in (${list})`);
     }),
   );
 
   return results.flat();
 }
 
-export async function fetchEpicChildren(epicKey: string): Promise<JiraIssue[]> {
+export async function fetchEpicChildren(
+  origin: string,
+  epicKey: string,
+): Promise<JiraIssue[]> {
   const escaped = epicKey.replace(/"/g, '\\"');
-  return searchIssuesByJql(`parentEpic = "${escaped}" ORDER BY rank ASC`);
+  return searchIssuesByJql(
+    origin,
+    `parentEpic = "${escaped}" ORDER BY rank ASC`,
+  );
 }

@@ -6,6 +6,7 @@ import {
 } from "../shared/pedigreeGeometry";
 import { issueBrowseUrl } from "../shared/issueKey";
 import type { IssueSummary } from "../shared/types";
+import { useJiraOrigin } from "./JiraOriginContext";
 
 export type { PedigreeOrientation };
 
@@ -58,6 +59,7 @@ export function LineageView({
   hideDone,
   onFocusKey,
 }: LineageViewProps) {
+  const jiraOrigin = useJiraOrigin();
   const [orientation, setOrientation] = useState<PedigreeOrientation>("tb");
   const epicChildSet = useMemo(() => new Set(epicChildKeys), [epicChildKeys]);
   const layout = useMemo(
@@ -266,15 +268,19 @@ export function LineageView({
                 title={issue.summary}
               >
                 <div className="jbt-pedigree-node-top">
-                  <a
-                    className="jbt-key"
-                    href={issueBrowseUrl(issue.key)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {issue.key}
-                  </a>
+                  {jiraOrigin ? (
+                    <a
+                      className="jbt-key"
+                      href={issueBrowseUrl(jiraOrigin, issue.key)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {issue.key}
+                    </a>
+                  ) : (
+                    <span className="jbt-key">{issue.key}</span>
+                  )}
                   <span className="jbt-pedigree-lev" title="Leverage">
                     {issue.leverage}
                   </span>

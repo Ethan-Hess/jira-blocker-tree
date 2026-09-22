@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Project
 
-Personal Chrome MV3 extension for a single Jira Cloud site (`JIRA_ORIGIN` in the gitignored `.env`). It builds a collapsible blocking tree (epic children + inward Blocks links) on issue pages and in the side panel.
+Chrome MV3 extension for Jira Cloud (`https://*.atlassian.net`). Content UI injects on `/browse/*`, `/jira/*`, and `/issues/*` (not the whole host). It builds a collapsible blocking tree (epic children + inward Blocks links) on issue pages and in the side panel. The active tab’s origin drives REST calls (not a build-time host).
 
 Keep changes small and in the existing layout: `src/shared/` for logic, `src/ui/` for React, `src/content/` for Jira DOM, `src/background/` for the service worker.
 
@@ -16,11 +16,12 @@ Keep changes small and in the existing layout: `src/shared/` for logic, `src/ui/
 - Batch Jira key lookups (`key in (...)`, 50 keys per request). Prefetch breadth-first, one level at a time.
 - Keep the content-script drawer in a shadow root so Jira CSS does not leak in.
 - Re-attach the header launcher when Jira re-renders (`src/content/mountPoints.ts`).
+- Pass the runtime Jira origin into tree builds and issue links (`src/shared/jiraOrigin.ts`).
 
 ## Do not
 
-- Add OAuth, PATs, API tokens, or new Jira host permissions.
-- Hardcode the Jira host or issue keys anywhere in the repo; read `JIRA_ORIGIN` from `.env`.
+- Add OAuth, PATs, API tokens, or host permissions beyond `https://*.atlassian.net/*`.
+- Bake a tenant hostname into the manifest or shipped JS; local `.env` `JIRA_ORIGIN` is debug-scripts only.
 - Use `--disable-extensions-except` with `npm run chrome`.
 - Put panel styles in Jira's document CSS (except the small launcher in `content.css`).
 - Expand `ISSUE_FIELDS` without a reason; extra fields cost every search.

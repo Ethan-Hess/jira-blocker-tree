@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getActiveIssueKey, requestBuildTree } from "../shared/messaging";
+import { getActiveIssue, requestBuildTree } from "../shared/messaging";
 import { issueKeyFromUrl } from "../shared/issueKey";
+import { jiraOriginFromUrl } from "../shared/jiraOrigin";
 import type { BuildTreeResult, TreeNode } from "../shared/types";
+import { JiraOriginProvider } from "./JiraOriginContext";
 import { LineageView } from "./LineageView";
 import { TreeColumnHeader } from "./TreeColumnHeader";
 import { TreeNodeRow } from "./TreeNodeRow";
@@ -52,6 +54,7 @@ function Skeleton() {
 
 interface BlockerTreePanelProps {
   issueKey: string | null;
+  jiraOrigin: string | null;
   onClose?: () => void;
   onIssueKeyChange?: (key: string | null) => void;
   variant?: "drawer" | "embedded";
@@ -59,6 +62,7 @@ interface BlockerTreePanelProps {
 
 export function BlockerTreePanel({
   issueKey,
+  jiraOrigin,
   onClose,
   onIssueKeyChange,
   variant = "embedded",
@@ -79,11 +83,15 @@ export function BlockerTreePanel({
     async (key: string, force = false) => {
       const trimmed = key.trim().toUpperCase();
       if (!trimmed) return;
+      if (!jiraOrigin) {
+        setError("Open a Jira Cloud page (https://*.atlassian.net/jira/...) first.");
+        return;
+      }
 
       setLoading(true);
       setError(null);
       try {
-        const data = await requestBuildTree(trimmed, force);
+        const data = await requestBuildTree(trimmed, jiraOrigin, force);
         setResult(data);
         setError(data.error ?? null);
         loadedKeyRef.current = trimmed;
@@ -96,7 +104,7 @@ export function BlockerTreePanel({
         setLoading(false);
       }
     },
-    [onIssueKeyChange],
+    [jiraOrigin, onIssueKeyChange],
   );
 
   const toggleSelectedKey = useCallback((key: string) => {
@@ -143,7 +151,7 @@ export function BlockerTreePanel({
           type="button"
           className="jbt-icon-button"
           title="Refresh"
-          disabled={loading || !rootKey}
+          disabled={loading || !rootKey || !jiraOrigin}
           onClick={() => rootKey && void load(rootKey, true)}
         >
           <span className={loading ? "jbt-spin" : undefined}>
@@ -258,7 +266,7 @@ export function BlockerTreePanel({
           <p className="jbt-empty">
             {issueKey
               ? "Nothing to show for this issue."
-              : "Open a Jira issue, or enter an issue key above."}
+              : "Open a Jira issue under /jira/, or enter an issue key above."}
           </p>
         )}
       </div>
@@ -268,17 +276,34 @@ export function BlockerTreePanel({
   if (variant === "drawer") {
     const wideClass = view === "lineage" ? " jbt-drawer-wide" : "";
     return (
-      <div className={`jbt-root jbt-drawer${wideClass}${themeClass}`}>{body}</div>
+      <div className={`jbt-root jbt-drawer${wideClass}${themeClass}`}>
+        <JiraOriginProvider origin={jiraOrigin}>{body}</JiraOriginProvider>
+      </div>
     );
   }
-  return body;
+
+  return <JiraOriginProvider origin={jiraOrigin}>{body}</JiraOriginProvider>;
 }
 
-export async function resolveInitialIssueKey(): Promise<string | null> {
+export async function resolveInitialIssue(): Promise<{
+  issueKey: string | null;
+  origin: string | null;
+}> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab?.url) {
+    const origin = jiraOriginFromUrl(tab.url);
     const fromTab = issueKeyFromUrl(tab.url);
-    if (fromTab) return fromTab;
+    if (origin && fromTab) return { issueKey: fromTab, origin };
+    if (origin) {
+      const stored = await getActiveIssue();
+      return { issueKey: stored.issueKey, origin };
+    }
   }
-  return getActiveIssueKey();
+  return getActiveIssue();
+}
+
+/** @deprecated Prefer resolveInitialIssue(). */
+export async function resolveInitialIssueKey(): Promise<string | null> {
+  const { issueKey } = await resolveInitialIssue();
+  return issueKey;
 }

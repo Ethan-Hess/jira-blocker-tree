@@ -11,7 +11,9 @@
     "chrome": "node scripts/chrome.mjs",
     "reload": "node scripts/load-extension.mjs",
     "inspect": "node scripts/inspect.mjs",
-    "extensions": "node scripts/extensions.mjs"
+    "extensions": "node scripts/extensions.mjs",
+    "icons": "node scripts/generate-icons.mjs",
+    "zip": "node scripts/zip-dist.mjs"
   },
   "dependencies": {
     "react": "^19.1.0",

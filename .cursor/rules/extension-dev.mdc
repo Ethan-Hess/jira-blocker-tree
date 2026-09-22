@@ -9,7 +9,7 @@ alwaysApply: false
 - Manifest lives in `manifest.config.ts` (CRXJS `defineManifest`). Do not hand-edit a built `dist/manifest.json`.
 - Background is a module service worker. Tree cache TTL is 60s; **Refresh** must pass `force` and skip cache.
 - Messages: typed `BackgroundRequest` / `BackgroundResponse` in `src/shared/types.ts`, sent via `src/shared/messaging.ts`.
-- Content script matches `/browse/*` and `/jira/*` because boards open issues in a modal without a browse URL.
+- Content script matches `https://*.atlassian.net/browse/*`, `/jira/*`, and `/issues/*`. Host permission is `https://*.atlassian.net/*` for REST (do not inject on `/*`).
 - `npm run chrome` uses `.devtools/chrome-profile` and CDP `Extensions.loadUnpacked` on port 9222. Reinstall after restart; profile login persists.
 - Vite HMR updates the panel. After service-worker, tree-build, or `BuildTreeResult` changes, `npm run build` then `npm run reload` (stale workers can omit fields and crash Lineage with no banner).
 - After UI or content-script changes, confirm with `npm run inspect -- --open` (or reload + screenshot via `scripts/inspect.mjs`). Lineage: verify-extension skill.

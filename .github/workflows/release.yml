@@ -1,0 +1,57 @@
+name: Release to Chrome Web Store
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Verify release tag matches package.json (release events only)
+        if: github.event_name == 'release'
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          TAG="${TAG#v}"
+          PKG=$(node -p "JSON.parse(require('fs').readFileSync('package.json','utf8')).version")
+          if [ "$TAG" != "$PKG" ]; then
+            echo "Release tag must match package.json version (expected v$PKG, got v$TAG)."
+            exit 1
+          fi
+
+      - run: npm ci
+
+      - name: Build extension
+        run: npm run build
+
+      - name: Package for Chrome Web Store
+        run: |
+          mkdir -p artifact
+          npm run zip -- artifact/jira-blocker-tree.zip
+
+      - name: Upload and publish
+        uses: cssnr/webstore-publish-action@v1
+        with:
+          extension_id: ${{ secrets.CHROME_EXTENSION_ID }}
+          publisher_id: ${{ secrets.CHROME_PUBLISHER_ID }}
+          zip_file: artifact/jira-blocker-tree.zip
+          publish: default
+          json_data: ${{ secrets.CHROME_WEBSTORE_SERVICE_ACCOUNT_JSON }}
+          status: true
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chrome-extension-zip
+          path: artifact/jira-blocker-tree.zip
+          if-no-files-found: error

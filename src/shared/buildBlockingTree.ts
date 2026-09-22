@@ -77,10 +77,10 @@ function buildNode(
   };
 }
 
-async function prefetchGraph(ctx: BuildContext): Promise<void> {
+async function prefetchGraph(ctx: BuildContext, origin: string): Promise<void> {
   const [root, epicChildren] = await Promise.all([
-    fetchIssue(ctx.rootKey),
-    fetchEpicChildren(ctx.rootKey).catch(() => [] as JiraIssue[]),
+    fetchIssue(origin, ctx.rootKey),
+    fetchEpicChildren(origin, ctx.rootKey).catch(() => [] as JiraIssue[]),
   ]);
 
   ctx.issues.set(root.key, root);
@@ -118,7 +118,7 @@ async function prefetchGraph(ctx: BuildContext): Promise<void> {
     }
     if (keys.length === 0) break;
 
-    const loaded = await fetchIssuesByKeys(keys);
+    const loaded = await fetchIssuesByKeys(origin, keys);
     frontier = [];
     for (const issue of loaded) {
       if (ctx.issues.has(issue.key)) continue;
@@ -130,7 +130,10 @@ async function prefetchGraph(ctx: BuildContext): Promise<void> {
   }
 }
 
-async function prefetchOutwardTargets(ctx: BuildContext): Promise<void> {
+async function prefetchOutwardTargets(
+  ctx: BuildContext,
+  origin: string,
+): Promise<void> {
   const pending = new Set<string>();
 
   for (const issue of ctx.issues.values()) {
@@ -151,7 +154,7 @@ async function prefetchOutwardTargets(ctx: BuildContext): Promise<void> {
   }
   if (keys.length === 0) return;
 
-  const loaded = await fetchIssuesByKeys(keys);
+  const loaded = await fetchIssuesByKeys(origin, keys);
   for (const issue of loaded) {
     if (ctx.issues.has(issue.key)) continue;
     if (ctx.issues.size >= MAX_TREE_NODES) {
@@ -176,6 +179,7 @@ function buildIssuesByKey(
 
 export async function buildBlockingTree(
   rootKey: string,
+  origin: string,
 ): Promise<BuildTreeResult> {
   const ctx: BuildContext = {
     rootKey,
@@ -197,8 +201,8 @@ export async function buildBlockingTree(
   });
 
   try {
-    await prefetchGraph(ctx);
-    await prefetchOutwardTargets(ctx);
+    await prefetchGraph(ctx, origin);
+    await prefetchOutwardTargets(ctx, origin);
     ctx.analysis = analyzeGraph(ctx.issues, rootKey);
     const tree = buildNode(ctx, rootKey, "root", 0, new Set());
     const issuesByKey = buildIssuesByKey(ctx.issues, ctx.analysis);

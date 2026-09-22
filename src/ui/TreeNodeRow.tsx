@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { issueBrowseUrl } from "../shared/issueKey";
 import type { IssueSummary, TreeNode } from "../shared/types";
+import { useJiraOrigin } from "./JiraOriginContext";
 import { ChevronIcon } from "./icons";
 
 function typeClass(issueTypeName: string): string {
@@ -61,6 +62,7 @@ export function TreeNodeRow({
   selectedKey,
   onSelect,
 }: TreeNodeRowProps) {
+  const jiraOrigin = useJiraOrigin();
   const [expanded, setExpanded] = useState(depth < 2);
   const hasChildren = node.children.length > 0;
   const isPlaceholder = node.kind === "cycle" || node.kind === "truncated";
@@ -115,15 +117,21 @@ export function TreeNodeRow({
                 {typeInitial(node.issue.issueTypeName)}
               </span>
 
-              <a
-                className={`jbt-key${isDone ? " jbt-key-done" : ""}`}
-                href={issueBrowseUrl(node.issue.key)}
-                target="_blank"
-                rel="noreferrer"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {node.issue.key}
-              </a>
+              {jiraOrigin ? (
+                <a
+                  className={`jbt-key${isDone ? " jbt-key-done" : ""}`}
+                  href={issueBrowseUrl(jiraOrigin, node.issue.key)}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {node.issue.key}
+                </a>
+              ) : (
+                <span className={`jbt-key${isDone ? " jbt-key-done" : ""}`}>
+                  {node.issue.key}
+                </span>
+              )}
 
               <span className="jbt-summary" title={node.issue.summary}>
                 {node.issue.summary}

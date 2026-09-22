@@ -44,9 +44,15 @@ export interface BuildTreeResult {
 }
 
 export type BackgroundRequest =
-  | { type: "BUILD_TREE"; issueKey: string; force?: boolean }
+  | {
+      type: "BUILD_TREE";
+      issueKey: string;
+      /** https://tenant.atlassian.net */
+      origin: string;
+      force?: boolean;
+    }
   | { type: "GET_ACTIVE_ISSUE" }
-  | { type: "SET_ACTIVE_ISSUE"; issueKey: string };
+  | { type: "SET_ACTIVE_ISSUE"; issueKey: string; origin: string };
 
 export type BackgroundResponse =
   | { ok: true; data: BuildTreeResult }
