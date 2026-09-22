@@ -327,9 +327,9 @@
 
 .jbt-tree-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 52px 92px 40px;
+  grid-template-columns: minmax(0, 1fr) 52px 112px 44px;
   align-items: center;
-  column-gap: 6px;
+  column-gap: 12px;
 }
 
 .jbt-tree-header {
@@ -353,6 +353,7 @@
   letter-spacing: 0.04em;
   color: var(--jbt-subtle);
   text-align: left;
+  justify-content: flex-start;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -376,10 +377,21 @@
 
 .jbt-col-leverage {
   justify-content: flex-end;
+}
+
+.jbt-row .jbt-col-leverage {
   font-size: 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--jbt-subtle);
+}
+
+.jbt-col-status {
+  overflow: hidden;
+}
+
+.jbt-col-status .jbt-lozenge {
+  max-width: 100%;
 }
 
 .jbt-col-assignee {
