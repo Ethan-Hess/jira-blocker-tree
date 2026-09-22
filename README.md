@@ -1,19 +1,47 @@
-# Jira Blocker Tree (Chrome extension)
+# Jira Blocker Tree
 
-Chrome extension for Jira Cloud (`https://*.atlassian.net`). On an issue or epic page (`/browse/KEY`, `/jira/…`, or `/issues/…`), it builds a collapsible tree of:
+A Chrome extension for **anyone on Jira Cloud**. It works on every `https://*.atlassian.net` site you are already logged into. There is no tenant config, OAuth, or API token.
 
-- Issues linked to the epic (`parentEpic = KEY`)
+On an issue or epic page (`/browse/KEY`, `/jira/…`, or `/issues/…`) it opens a collapsible **Blocker tree** of:
+
+- Issues under the epic (`parentEpic = KEY`)
 - Inward **Blocks** links (`is blocked by`), including cross-project blockers
 
-Each row shows issue key, summary, status, assignee, and a badge when the issue blocks others. The site comes from the tab you have open (not a build-time config).
+Each row shows issue key, summary, status, assignee, and a leverage count when the issue blocks others. **Lineage** lays the same graph out by layer so you can see what is parallel vs what is waiting on something else.
 
-## Requirements
+The site comes from the tab you have open, not a build-time hostname.
+
+![Blocking tree on a Jira issue](store-assets/01-tree.png)
+
+![Lineage view of the same graph](store-assets/03-lineage.png)
+
+## Install
+
+1. Install **Jira Blocker Tree** from the [Chrome Web Store](https://chrome.google.com/webstore) (search the name if you do not have the listing URL yet).
+2. Open any Jira Cloud issue while you are logged in.
+3. Click **Blockers** in the issue header (next to Automation) to open the drawer, or click the extension icon for the **side panel**.
+
+Until the listing is live, you can still load it unpacked: `npm install && npm run build`, then **Load unpacked** on `chrome://extensions` and pick the `dist` folder.
+
+## Usage
+
+1. Open any issue, e.g. `https://your-site.atlassian.net/browse/PROJ-123` or a `/jira/...` board/issue view.
+2. Click **Blockers** in the issue header action row.
+3. Use **Refresh** after changing links, **Hide done** to filter completed work, and **Tree** / **Lineage** to switch views.
+
+The walker uses the link type **Blocks** (inward: `is blocked by`, outward: `is blocking`). Depth and node caps prevent runaway graphs.
+
+## Privacy
+
+The extension uses your existing Jira browser session (`credentials: include`). It only talks to the `*.atlassian.net` origin of the tab you have open. It does not send issue data to a third-party server. See [docs/PRIVACY.md](docs/PRIVACY.md).
+
+## Requirements (development)
 
 - Node.js 20+
 - Chrome (Manifest V3, side panel support recommended)
 - Logged-in session on a Jira Cloud site (`*.atlassian.net`) in the same browser profile
 
-## Setup
+## Setup (development)
 
 ```bash
 cd jira-blocker-tree
@@ -28,15 +56,6 @@ Load unpacked in Chrome:
 1. Open `chrome://extensions`
 2. Enable **Developer mode**
 3. **Load unpacked** and select the `dist` folder (after `npm run build`)
-
-## Usage
-
-1. Open any issue, e.g. `https://your-site.atlassian.net/browse/PROJ-123` or a `/jira/...` board/issue view
-2. Click **Blockers** in the issue header action row (next to Automation and Open in coding tool) to open the drawer
-3. Or click the extension icon to open the **side panel** (tracks the active Jira tab when possible)
-4. Use **Refresh** after changing links, **Hide done** to filter completed work
-
-The walker uses the link type **Blocks** (inward: `is blocked by`, outward: `is blocking`). Depth and node caps prevent runaway graphs.
 
 ## Performance
 
@@ -109,17 +128,17 @@ Shared logic lives under `src/shared/`:
 
 UI lives under `src/ui/`. The content script renders the drawer inside a shadow root so Jira's global CSS cannot affect it, and injects the header button via `src/content/mountPoints.ts`, which re-attaches the button whenever Jira re-renders the issue header.
 
-## Future: Forge issue panel
+## Optional: Forge issue panel
 
-To ship this inside Jira for the team, reuse the same modules in a Forge app:
+To ship the same UI as a native Jira panel for a Cloud site, reuse the same modules in a Forge app:
 
-1. Copy `src/shared/` (or publish as an internal package)
+1. Copy `src/shared/`
 2. Replace `jira/client.ts` fetch with Forge `requestJira` (`asUser()`)
 3. Mount the same React tree in a `jira:issuePanel` UI Kit or Custom UI resource
 4. Pass the issue key from Forge context instead of the browse URL
 
-No OAuth or PAT is required for the Chrome extension because it uses your existing Jira browser session.
+The Chrome extension does not need that. It uses the visitor's existing Jira session.
 
 ## Chrome Web Store and GitHub releases
 
-To list the extension on the Chrome Web Store and publish automatically when you create a GitHub release, follow [docs/CHROME_WEB_STORE.md](docs/CHROME_WEB_STORE.md).
+Listing copy, screenshots, privacy URL, and automated publish on GitHub release: [docs/CHROME_WEB_STORE.md](docs/CHROME_WEB_STORE.md).

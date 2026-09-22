@@ -1,21 +1,59 @@
 # Chrome Web Store listing and release deploy
 
-The extension works on any Jira Cloud site (`https://*.atlassian.net`). Host
-permission is `https://*.atlassian.net/*`; the content-script drawer injects on
-`/browse/*`, `/jira/*`, and `/issues/*` (not Confluence `/wiki` or the whole
-host). The active tab’s origin is used for REST calls (no baked-in site, no
-`JIRA_ORIGIN` in CI).
+This is a **public** extension for anyone on Jira Cloud (`https://*.atlassian.net`),
+not a private or single-tenant build. Host permission is `https://*.atlassian.net/*`;
+the content-script drawer injects on `/browse/*`, `/jira/*`, and `/issues/*` (not
+Confluence `/wiki` or the whole host). The active tab’s origin is used for REST
+calls (no baked-in site, no `JIRA_ORIGIN` in CI).
 
 Publishing uses the [Chrome Web Store API v2](https://developer.chrome.com/docs/webstore/using-api) and [cssnr/webstore-publish-action](https://github.com/cssnr/webstore-publish-action) on GitHub **Release published** events.
+
+## Listing copy (public)
+
+**Name:** Jira Blocker Tree
+
+**Short description:** Collapsible blocking tree for Jira Cloud: epic children, Blocks links, status, and lineage.
+
+**Single purpose:** Show a collapsible tree of epic children and inward Blocks links on Jira Cloud issue pages.
+
+Suggested description:
+
+```
+For anyone on Jira Cloud. Open an issue or epic, click Blockers, and see what is blocked and what is blocking.
+
+Works on every https://*.atlassian.net site you are already logged into. No API token. The site comes from the tab you have open.
+
+Tree view: epic children plus “is blocked by” links, with status, assignee, and leverage.
+Lineage view: the same graph by layer (what can move in parallel vs what is waiting).
+Hide done, search, and refresh from the drawer or the side panel.
+```
+
+## Screenshots and privacy URL
+
+Store-sized shots (1280×800, issue text redacted) live in `store-assets/`:
+
+| File | Use |
+| --- | --- |
+| `01-tree.png` | Primary screenshot (tree drawer) |
+| `03-lineage.png` | Lineage view |
+| `02-tree-hide-done.png`, `04-lineage-left-right.png` | Extra listing shots |
+
+Recapture from the debug Chrome (`npm run chrome`, logged into any Cloud site):
+
+```bash
+node scripts/store-shots.mjs --key=PROJ-123
+```
+
+Privacy policy for the listing: [PRIVACY.md](PRIVACY.md) (use the GitHub URL of that file on `main`).
 
 ## One-time: developer account and listing
 
 1. Sign in to the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole).
 2. Pay the one-time developer registration fee and enable **2-step verification** on the Google account that owns the listing (required to publish).
-3. Create the store listing (name, description, category, privacy practices). You need at least:
-   - One screenshot (1280×800 or 640×400)
+3. Create a **public** store listing (name, description, category, privacy practices). You need at least:
+   - Screenshots (1280×800 or 640×400); start with `store-assets/01-tree.png` and `03-lineage.png`
    - Small promo tile (440×280)
-   - A public **privacy policy** URL (session cookie use on Jira Cloud sites the user visits).
+   - A public **privacy policy** URL pointing at [PRIVACY.md](PRIVACY.md)
 4. **First upload (manual):**
    ```bash
    npm run build
@@ -62,7 +100,7 @@ Each store update needs a **higher** manifest version than the last published ve
 
 ## Visibility
 
-Choose visibility in the dashboard (public, unlisted, or private with trusted testers). The API publishes using whatever visibility you last set in the dashboard; change it there before relying on automated publishes.
+Set the listing to **Public** so anyone with Chrome can install it. The API publishes using whatever visibility you last set in the dashboard; change it there before relying on automated publishes. Unlisted or trusted-tester is only for a dry run before the first public submit.
 
 ## Troubleshooting
 
