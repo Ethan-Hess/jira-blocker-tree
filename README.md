@@ -142,3 +142,7 @@ The Chrome extension does not need that. It uses the visitor's existing Jira ses
 ## Chrome Web Store and GitHub releases
 
 Listing copy, screenshots, privacy URL, and automated publish on GitHub release: [docs/CHROME_WEB_STORE.md](docs/CHROME_WEB_STORE.md).
+
+## License
+
+Copyright 2026 Ethan Hess. Licensed under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) and [CONTRIBUTING.md](CONTRIBUTING.md).

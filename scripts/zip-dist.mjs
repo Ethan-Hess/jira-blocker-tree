@@ -4,7 +4,7 @@
  * Usage: node scripts/zip-dist.mjs [output-path]
  */
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -18,6 +18,9 @@ if (!existsSync(DIST)) {
   console.error(`Missing ${DIST}. Run npm run build first.`);
   process.exit(1);
 }
+
+copyFileSync(join(ROOT, "LICENSE"), join(DIST, "LICENSE"));
+copyFileSync(join(ROOT, "NOTICE"), join(DIST, "NOTICE"));
 
 const zipCheck = spawnSync("zip", ["-v"], { encoding: "utf8" });
 if (zipCheck.status !== 0) {
