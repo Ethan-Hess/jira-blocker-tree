@@ -91,12 +91,15 @@ In `https://github.com/Ethan-Hess/jira-blocker-tree/settings/secrets/actions`, a
 4. Publish the release. The [Release to Chrome Web Store](.github/workflows/release.yml) workflow will:
    - Build the extension (no site-specific env)
    - Zip `dist/`
-   - Upload and submit for publishing via the Web Store API
-   - Attach the same zip to the workflow run as an artifact
+   - Attach `jira-blocker-tree.zip` to the GitHub release (for Load unpacked)
+   - Upload and submit to the Chrome Web Store **only if** the Web Store secrets are set
+   - Also attach the zip to the workflow run as an artifact
 
-You can also run the workflow manually (**Actions → Release to Chrome Web Store → Run workflow**) after secrets are set.
+You can also run the workflow manually (**Actions → Release to Chrome Web Store → Run workflow**). Manual runs still produce a workflow artifact; they do not attach a file to a GitHub release.
 
 Each store update needs a **higher** manifest version than the last published version. Google reviews updates like the first submission.
+
+**Load unpacked from the zip:** download `jira-blocker-tree.zip` from the release, unzip it, then Chrome → Extensions → Developer mode → **Load unpacked** → select the folder that contains `manifest.json`.
 
 ## Visibility
 

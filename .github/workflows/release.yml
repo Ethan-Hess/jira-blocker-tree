@@ -9,7 +9,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -39,7 +39,28 @@ jobs:
           mkdir -p artifact
           npm run zip -- artifact/jira-blocker-tree.zip
 
-      - name: Upload and publish
+      - name: Attach zip to GitHub Release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" artifact/jira-blocker-tree.zip --clobber
+
+      - name: Check Chrome Web Store secrets
+        id: webstore
+        env:
+          EXT: ${{ secrets.CHROME_EXTENSION_ID }}
+          PUB: ${{ secrets.CHROME_PUBLISHER_ID }}
+          JSON: ${{ secrets.CHROME_WEBSTORE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -n "$EXT" ] && [ -n "$PUB" ] && [ -n "$JSON" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Chrome Web Store secrets are not set. Zip is still attached to the GitHub release (if this run was a published release) and uploaded as a workflow artifact."
+          fi
+
+      - name: Upload and publish to Chrome Web Store
+        if: steps.webstore.outputs.ready == 'true'
         uses: cssnr/webstore-publish-action@v1
         with:
           extension_id: ${{ secrets.CHROME_EXTENSION_ID }}

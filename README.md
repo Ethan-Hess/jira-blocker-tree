@@ -17,11 +17,15 @@ The site comes from the tab you have open, not a build-time hostname.
 
 ## Install
 
-1. Install **Jira Blocker Tree** from the [Chrome Web Store](https://chrome.google.com/webstore) (search the name if you do not have the listing URL yet).
-2. Open any Jira Cloud issue while you are logged in.
-3. Click **Blockers** in the issue header (next to Automation) to open the drawer, or click the extension icon for the **side panel**.
+**Load unpacked from a release zip** (until the Chrome Web Store listing is live):
 
-Until the listing is live, you can still load it unpacked: `npm install && npm run build`, then **Load unpacked** on `chrome://extensions` and pick the `dist` folder.
+1. Download `jira-blocker-tree.zip` from the latest [GitHub Release](https://github.com/Ethan-Hess/jira-blocker-tree/releases).
+2. Unzip it. You should see `manifest.json` in the extracted folder.
+3. Open `chrome://extensions`, enable **Developer mode**, click **Load unpacked**, and select that folder.
+4. Open any Jira Cloud issue while you are logged in.
+5. Click **Blockers** in the issue header (next to Automation) to open the drawer, or click the extension icon for the **side panel**.
+
+From source: `npm install && npm run build`, then **Load unpacked** and pick the `dist` folder.
 
 ## Usage
 
@@ -141,7 +145,7 @@ The Chrome extension does not need that. It uses the visitor's existing Jira ses
 
 ## Chrome Web Store and GitHub releases
 
-Listing copy, screenshots, privacy URL, and automated publish on GitHub release: [docs/CHROME_WEB_STORE.md](docs/CHROME_WEB_STORE.md).
+Publishing a GitHub release tagged `vX.Y.Z` (matching `package.json`) builds `jira-blocker-tree.zip`, attaches it to the release, and publishes to the Chrome Web Store when those secrets are configured. Details: [docs/CHROME_WEB_STORE.md](docs/CHROME_WEB_STORE.md).
 
 ## License
 
